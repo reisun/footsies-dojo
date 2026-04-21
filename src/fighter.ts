@@ -215,6 +215,9 @@ export class Fighter {
     switch (this.state) {
       case "attack":
         this.attackFrame++;
+        // Apply friction during attack (e.g. when pushed back on guard)
+        this.velocityX *= 0.88;
+        if (Math.abs(this.velocityX) < 0.5) this.velocityX = 0;
         if (this.attackFrame >= this.attackTotalFrames) {
           this.state = "idle";
           this.attackData = null;
