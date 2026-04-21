@@ -81,9 +81,12 @@ export class CpuAI {
         } else if (roll < 0.55) {
           input.heavy = true;
         } else if (roll < 0.7) {
-          // Guard: crouch or walk back
+          // Guard: crouch guard (down + back) or walk back
           if (Math.random() < 0.4) {
             input.down = true;
+            // Also press back to actually guard
+            if (self.facing === 1) input.left = true;
+            else input.right = true;
             this.holdFrames = 8 + Math.floor(Math.random() * 12);
           } else {
             if (self.facing === 1) input.left = true;
@@ -112,9 +115,12 @@ export class CpuAI {
       // Close range
       if (optimal) {
         if (opponent.isAttacking) {
-          // Block: crouch guard or walk-back guard
+          // Block: crouch guard (down + back) or walk-back guard
           if (Math.random() < 0.5) {
             input.down = true;
+            // Also press back to actually guard
+            if (self.facing === 1) input.left = true;
+            else input.right = true;
             this.holdFrames = 15;
           } else {
             if (self.facing === 1) input.left = true;

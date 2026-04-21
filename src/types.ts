@@ -22,6 +22,7 @@ export type FighterState =
   | "walkForward"
   | "walkBack"
   | "crouch"
+  | "crouchGuard"
   | "dash"
   | "attack"
   | "hitstun"
@@ -43,6 +44,7 @@ export interface AttackData {
   range: number; // horizontal reach from character center
   pushback: number; // how far opponent is pushed on hit
   guardPushback: number;
+  attackerGuardPushback: number; // how far attacker is pushed back when blocked
 }
 
 export interface Hitbox {

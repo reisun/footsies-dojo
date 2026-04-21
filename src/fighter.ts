@@ -58,7 +58,7 @@ export class Fighter {
   }
 
   get isActionable(): boolean {
-    return this.state === "idle" || this.state === "walkForward" || this.state === "walkBack" || this.state === "crouch";
+    return this.state === "idle" || this.state === "walkForward" || this.state === "walkBack" || this.state === "crouch" || this.state === "crouchGuard";
   }
 
   get isAttacking(): boolean {
@@ -66,7 +66,7 @@ export class Fighter {
   }
 
   get isGuarding(): boolean {
-    return (this.state === "walkBack" || this.state === "crouch") && !this.isAttacking;
+    return (this.state === "walkBack" || this.state === "crouchGuard") && !this.isAttacking;
   }
 
   get hurtbox(): Hitbox {
@@ -100,7 +100,7 @@ export class Fighter {
     }
 
     // Crouching: shorter hurtbox
-    if (this.state === "crouch") {
+    if (this.state === "crouch" || this.state === "crouchGuard") {
       const crouchH = CHAR_H * 0.7;
       return {
         x: this.x - CHAR_W / 2,
@@ -167,18 +167,22 @@ export class Fighter {
       return;
     }
 
-    // Crouch (guard without moving)
-    if (input.down) {
-      this.state = "crouch";
-      this.velocityX = 0;
-      return;
-    }
-
-    // Movement
+    // Movement direction detection
     const movingForward =
       (this.facing === 1 && input.right) || (this.facing === -1 && input.left);
     const movingBack =
       (this.facing === 1 && input.left) || (this.facing === -1 && input.right);
+
+    // Crouch: S only = crouch (no guard), S + back = crouch guard
+    if (input.down) {
+      if (movingBack) {
+        this.state = "crouchGuard";
+      } else {
+        this.state = "crouch";
+      }
+      this.velocityX = 0;
+      return;
+    }
 
     if (movingForward) {
       this.state = "walkForward";

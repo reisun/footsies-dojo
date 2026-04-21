@@ -21,14 +21,16 @@ export function resolveAttacks(a: Fighter, b: Fighter): { hitA: boolean; hitB: b
       a.attackHitConfirmed = true;
       const ad = a.attackData!;
 
-      // Check if B is guarding (walking back, crouching, or in blockstun)
+      // Check if B is guarding (walking back, crouch guard, or in blockstun)
       const bIsGuarding =
         b.state === "walkBack" ||
-        b.state === "crouch" ||
+        b.state === "crouchGuard" ||
         (b.state === "blockstun");
 
       if (bIsGuarding && b.state !== "attack" && b.state !== "hitstun" && b.state !== "knockdown" && b.state !== "dash") {
         b.takeBlock(ad.chipDamage, ad.guardPushback, ad.blockstun, a.facing);
+        // Attacker gets pushed back when blocked
+        a.velocityX = -ad.attackerGuardPushback * a.facing;
       } else {
         // Heavy attacks cause knockdown
         if (ad.type === "heavy" && b.state !== "hitstun") {
@@ -51,11 +53,13 @@ export function resolveAttacks(a: Fighter, b: Fighter): { hitA: boolean; hitB: b
 
       const aIsGuarding =
         a.state === "walkBack" ||
-        a.state === "crouch" ||
+        a.state === "crouchGuard" ||
         (a.state === "blockstun");
 
       if (aIsGuarding && a.state !== "attack" && a.state !== "hitstun" && a.state !== "knockdown" && a.state !== "dash") {
         a.takeBlock(bd.chipDamage, bd.guardPushback, bd.blockstun, b.facing);
+        // Attacker gets pushed back when blocked
+        b.velocityX = -bd.attackerGuardPushback * b.facing;
       } else {
         if (bd.type === "heavy" && a.state !== "hitstun") {
           a.takeKnockdown(bd.damage, bd.pushback, b.facing);

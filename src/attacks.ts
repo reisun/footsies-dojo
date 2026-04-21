@@ -12,7 +12,8 @@ export const ATTACKS: Record<string, AttackData> = {
     blockstun: 8,
     range: 55,
     pushback: 30,
-    guardPushback: 20,
+    guardPushback: 12,
+    attackerGuardPushback: 15,
   },
   medium: {
     type: "medium",
@@ -25,7 +26,8 @@ export const ATTACKS: Record<string, AttackData> = {
     blockstun: 12,
     range: 80,
     pushback: 40,
-    guardPushback: 30,
+    guardPushback: 18,
+    attackerGuardPushback: 25,
   },
   heavy: {
     type: "heavy",
@@ -38,6 +40,7 @@ export const ATTACKS: Record<string, AttackData> = {
     blockstun: 16,
     range: 110,
     pushback: 60,
-    guardPushback: 45,
+    guardPushback: 25,
+    attackerGuardPushback: 40,
   },
 };

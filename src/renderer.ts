@@ -73,10 +73,11 @@ export class Renderer {
     let bodyOffsetX = 0;
     let squish = 1.0;
 
-    let isCrouching = fighter.state === "crouch";
+    let isCrouching = fighter.state === "crouch" || fighter.state === "crouchGuard";
 
     switch (fighter.state) {
       case "crouch":
+      case "crouchGuard":
         bodyOffsetY = 16;
         squish = 1.1;
         break;
@@ -208,7 +209,7 @@ export class Renderer {
       ctx.fillStyle = "#4488ffaa";
       ctx.fillRect(bx + f * (bodyW / 2), by - bodyH + 5, 4, bodyH - 10);
     }
-    if (fighter.state === "crouch") {
+    if (fighter.state === "crouchGuard") {
       ctx.fillStyle = "#4488ffaa";
       ctx.fillRect(bx + f * (bodyW / 2), by - bodyH + 5, 4, bodyH - 10);
       // Small shield icon above
@@ -391,7 +392,7 @@ export class Renderer {
     ctx.fillStyle = "#666";
     ctx.font = "14px monospace";
     ctx.fillText("W/S or UP/DOWN to select   ENTER or J to start", CANVAS_W / 2, 460);
-    ctx.fillText("A/D = Move   W = Dash   S = Crouch Guard   J/K/L = Light/Med/Heavy", CANVAS_W / 2, 485);
+    ctx.fillText("A/D = Move   W = Dash   S = Crouch   S+A/D(back) = Guard   J/K/L = Attacks", CANVAS_W / 2, 485);
     ctx.fillText("H = Toggle Hitboxes", CANVAS_W / 2, 505);
   }
 
