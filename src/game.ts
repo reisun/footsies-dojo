@@ -44,6 +44,10 @@ export class Game {
   matchWinner: "player" | "cpu" | null = null;
   showHitboxes = false;
 
+  // Set tracking (online continuous play)
+  p1Sets = 0;
+  p2Sets = 0;
+
   // Online state
   onlinePlayerNumber: 1 | 2 = 1;
   gameFrame = 0; // Frame counter for online sync
@@ -62,6 +66,8 @@ export class Game {
     this.round = 1;
     this.player.roundsWon = 0;
     this.cpu.roundsWon = 0;
+    this.p1Sets = 0;
+    this.p2Sets = 0;
     this.gameFrame = 0;
     this.waitingForRemote = false;
     if (this.gameMode === "cpu") {
@@ -168,7 +174,7 @@ export class Game {
       case "matchEnd":
         this.phaseTimer--;
         if (this.phaseTimer <= 0) {
-          this.screen = "result";
+          this.startNewSet();
         }
         this.gameFrame++;
         break;
@@ -317,13 +323,31 @@ export class Game {
   private checkMatchEnd(): void {
     if (this.player.roundsWon >= ROUNDS_TO_WIN || this.cpu.roundsWon >= ROUNDS_TO_WIN) {
       this.battlePhase = "matchEnd";
-      this.phaseTimer = 60;
       this.matchWinner = this.player.roundsWon >= ROUNDS_TO_WIN ? "player" : "cpu";
-      this.roundMessage = "K.O.!";
+      if (this.gameMode === "online") {
+        this.phaseTimer = 150;
+        this.roundMessage = this.matchWinner === "player" ? "P1 WINS SET!" : "P2 WINS SET!";
+      } else {
+        this.phaseTimer = 60;
+        this.roundMessage = "K.O.!";
+      }
     } else {
       this.round++;
       this.startRound();
     }
+  }
+
+  private startNewSet(): void {
+    if (this.matchWinner === "player") {
+      this.p1Sets++;
+    } else {
+      this.p2Sets++;
+    }
+    this.round = 1;
+    this.player.roundsWon = 0;
+    this.cpu.roundsWon = 0;
+    this.matchWinner = null;
+    this.startRound();
   }
 
   handleTitleInput(wasPressed: (key: string) => boolean): void {
