@@ -18,14 +18,38 @@
         min-height: 100vh;
         overflow: hidden;
       }
+      #game-container {
+        position: relative;
+        display: inline-block;
+      }
       canvas {
         image-rendering: pixelated;
         image-rendering: crisp-edges;
+        display: block;
+      }
+      #how-to-play {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        color: #88aaff;
+        font-family: monospace;
+        font-size: 13px;
+        text-decoration: none;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        z-index: 1;
+      }
+      #how-to-play:hover {
+        opacity: 1;
+        text-decoration: underline;
       }
     </style>
   </head>
   <body>
-    <canvas id="game"></canvas>
+    <div id="game-container">
+      <a id="how-to-play" href="https://github.com/reisun/footsies-dojo#readme" target="_blank" rel="noopener">How to Play</a>
+      <canvas id="game"></canvas>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
