@@ -100,6 +100,17 @@ export class Renderer {
       case "dash":
         bodyOffsetX = f * 3;
         break;
+      case "attack":
+        // Heavy attack windup: lean back
+        if (fighter.attackData && fighter.attackData.type === "heavy" && fighter.attackFrame < fighter.attackData.startup) {
+          const windupProgress = fighter.attackFrame / fighter.attackData.startup;
+          if (windupProgress < 0.6) {
+            bodyOffsetX = -f * 6 * (windupProgress / 0.6);
+          } else {
+            bodyOffsetX = -f * 6 * (1 - (windupProgress - 0.6) / 0.4);
+          }
+        }
+        break;
     }
 
     const bx = x + bodyOffsetX;
@@ -161,9 +172,17 @@ export class Renderer {
       let armColor = color;
 
       if (frame < ad.startup) {
-        // Windup
-        armExtend = -10 + (frame / ad.startup) * 10;
-        armColor = shadeColor(color, 20);
+        // Windup - heavier attacks pull back further
+        const windupAmount = ad.type === "heavy" ? 28 : ad.type === "medium" ? 14 : 10;
+        const windupProgress = frame / ad.startup;
+        if (windupProgress < 0.6) {
+          // Pull back phase
+          armExtend = -(windupAmount * (windupProgress / 0.6));
+        } else {
+          // Start moving forward
+          armExtend = -windupAmount + windupAmount * ((windupProgress - 0.6) / 0.4);
+        }
+        armColor = ad.type === "heavy" ? "#ffaa44" : shadeColor(color, 20);
       } else if (frame < ad.startup + ad.active) {
         // Active - full extension
         armExtend = ad.range * 0.8;

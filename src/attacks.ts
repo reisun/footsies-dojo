@@ -31,7 +31,7 @@ export const ATTACKS: Record<string, AttackData> = {
   },
   heavy: {
     type: "heavy",
-    startup: 14,
+    startup: 20,
     active: 5,
     recovery: 22,
     damage: 160,
