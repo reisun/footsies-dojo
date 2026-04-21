@@ -40,7 +40,7 @@ function update(): void {
       break;
 
     case "battle":
-      game.updateBattle(input.getPlayerInput());
+      game.updateBattle(input.getPlayerInput(game.player.facing));
       break;
 
     case "result":
