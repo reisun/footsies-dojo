@@ -32,8 +32,15 @@ export function resolveAttacks(a: Fighter, b: Fighter): { hitA: boolean; hitB: b
         // Attacker gets pushed back when blocked
         a.velocityX = -ad.attackerGuardPushback * a.facing;
       } else {
-        // Heavy attacks cause knockdown
-        if (ad.type === "heavy" && b.state !== "hitstun") {
+        // 差し返し: medium attack punishing heavy attack recovery → 1.2x damage + knockdown
+        const isSashikaeshi = ad.type === "medium"
+          && b.state === "attack"
+          && b.attackData?.type === "heavy"
+          && b.attackFrame >= b.attackData.startup + b.attackData.active;
+
+        if (isSashikaeshi) {
+          b.takeKnockdown(Math.floor(ad.damage * 1.2), ad.pushback, a.facing);
+        } else if (ad.type === "heavy" && b.state !== "hitstun") {
           b.takeKnockdown(ad.damage, ad.pushback, a.facing);
         } else {
           b.takeDamage(ad.damage, ad.pushback, ad.hitstun, a.facing);
@@ -61,7 +68,15 @@ export function resolveAttacks(a: Fighter, b: Fighter): { hitA: boolean; hitB: b
         // Attacker gets pushed back when blocked
         b.velocityX = -bd.attackerGuardPushback * b.facing;
       } else {
-        if (bd.type === "heavy" && a.state !== "hitstun") {
+        // 差し返し: medium attack punishing heavy attack recovery → 1.2x damage + knockdown
+        const isSashikaeshi = bd.type === "medium"
+          && a.state === "attack"
+          && a.attackData?.type === "heavy"
+          && a.attackFrame >= a.attackData.startup + a.attackData.active;
+
+        if (isSashikaeshi) {
+          a.takeKnockdown(Math.floor(bd.damage * 1.2), bd.pushback, b.facing);
+        } else if (bd.type === "heavy" && a.state !== "hitstun") {
           a.takeKnockdown(bd.damage, bd.pushback, b.facing);
         } else {
           a.takeDamage(bd.damage, bd.pushback, bd.hitstun, b.facing);

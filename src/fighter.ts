@@ -70,6 +70,11 @@ export class Fighter {
   }
 
   get hurtbox(): Hitbox {
+    // No hurtbox during knockdown and getup — invincible until fully recovered
+    if (this.state === "knockdown" || this.state === "getup") {
+      return { x: -9999, y: -9999, w: 0, h: 0 };
+    }
+
     // Extend hurtbox during attack (active + recovery) to enable whiff punishment
     // Hurtbox extension matches the attackHitbox position/size
     if (this.state === "attack" && this.attackData) {
