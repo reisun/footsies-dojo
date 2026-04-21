@@ -79,9 +79,11 @@ export interface GameStateSnapshot {
   hitStop: number;
 }
 
-export type ScreenType = "title" | "battle" | "result";
+export type ScreenType = "title" | "battle" | "result" | "online_lobby" | "online_waiting" | "online_join";
 
 export type Difficulty = "easy" | "normal" | "hard";
+
+export type GameMode = "cpu" | "online";
 
 export interface InputState {
   left: boolean;

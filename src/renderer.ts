@@ -339,10 +339,11 @@ export class Renderer {
     // Labels
     ctx.fillStyle = "#fff";
     ctx.font = "bold 14px monospace";
+    const isOnline = game.gameMode === "online";
     ctx.textAlign = "left";
-    ctx.fillText("PLAYER", CANVAS_W / 2 - barW - gap / 2, barY - 6);
+    ctx.fillText(isOnline ? "P1" : "PLAYER", CANVAS_W / 2 - barW - gap / 2, barY - 6);
     ctx.textAlign = "right";
-    ctx.fillText("CPU", CANVAS_W / 2 + barW + gap / 2, barY - 6);
+    ctx.fillText(isOnline ? "P2" : "CPU", CANVAS_W / 2 + barW + gap / 2, barY - 6);
 
     // Timer
     ctx.textAlign = "center";
@@ -408,7 +409,7 @@ export class Renderer {
     ctx.fillText(msg, CANVAS_W / 2, CANVAS_H / 2);
   }
 
-  drawTitleScreen(selectedDifficulty: number): void {
+  drawTitleScreen(selectedOption: number, selectedDifficulty: number): void {
     const ctx = this.ctx;
     this.clear();
 
@@ -417,39 +418,63 @@ export class Renderer {
     ctx.font = "bold 56px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("FOOTSIES DOJO", CANVAS_W / 2, 140);
+    ctx.fillText("FOOTSIES DOJO", CANVAS_W / 2, 120);
 
     // Subtitle
     ctx.fillStyle = "#aaaacc";
     ctx.font = "18px monospace";
-    ctx.fillText("- master the neutral game -", CANVAS_W / 2, 190);
+    ctx.fillText("- master the neutral game -", CANVAS_W / 2, 170);
 
-    // Difficulty selection
-    const difficulties: Difficulty[] = ["easy", "normal", "hard"];
-    const labels = ["EASY", "NORMAL", "HARD"];
-    const startY = 280;
+    // Menu options
+    const menuY = 240;
 
-    for (let i = 0; i < 3; i++) {
-      const y = startY + i * 50;
-      const selected = i === selectedDifficulty;
-
-      if (selected) {
-        ctx.fillStyle = "#ffcc00";
-        ctx.font = "bold 28px monospace";
-        ctx.fillText(`> ${labels[i]} <`, CANVAS_W / 2, y);
-      } else {
-        ctx.fillStyle = "#888";
-        ctx.font = "24px monospace";
-        ctx.fillText(labels[i], CANVAS_W / 2, y);
-      }
+    // VS CPU option
+    const vsCpuSelected = selectedOption === 0;
+    if (vsCpuSelected) {
+      ctx.fillStyle = "#ffcc00";
+      ctx.font = "bold 28px monospace";
+    } else {
+      ctx.fillStyle = "#888";
+      ctx.font = "24px monospace";
     }
+    ctx.fillText("VS CPU", CANVAS_W / 2, menuY);
+
+    // Difficulty sub-selection (only when VS CPU is selected)
+    if (vsCpuSelected) {
+      const labels = ["EASY", "NORMAL", "HARD"];
+      ctx.font = "16px monospace";
+      for (let i = 0; i < 3; i++) {
+        const dx = CANVAS_W / 2 + (i - 1) * 100;
+        if (i === selectedDifficulty) {
+          ctx.fillStyle = "#ffcc00";
+          ctx.fillText(`[ ${labels[i]} ]`, dx, menuY + 35);
+        } else {
+          ctx.fillStyle = "#666";
+          ctx.fillText(labels[i], dx, menuY + 35);
+        }
+      }
+      ctx.fillStyle = "#555";
+      ctx.font = "12px monospace";
+      ctx.fillText("← A/D →", CANVAS_W / 2, menuY + 55);
+    }
+
+    // ONLINE option
+    const onlineSelected = selectedOption === 1;
+    if (onlineSelected) {
+      ctx.fillStyle = "#ffcc00";
+      ctx.font = "bold 28px monospace";
+    } else {
+      ctx.fillStyle = "#888";
+      ctx.font = "24px monospace";
+    }
+    ctx.fillText("ONLINE", CANVAS_W / 2, menuY + 90);
 
     // Controls
     ctx.fillStyle = "#666";
     ctx.font = "14px monospace";
-    ctx.fillText("W/S or UP/DOWN to select   ENTER or J to start", CANVAS_W / 2, 460);
-    ctx.fillText("A/D = Move   W = Dash   S = Crouch   S+A/D(back) = Guard   J/K/L = Attacks", CANVAS_W / 2, 485);
-    ctx.fillText("H = Toggle Hitboxes", CANVAS_W / 2, 505);
+    ctx.fillText("W/S or UP/DOWN to select   ENTER or J to start", CANVAS_W / 2, 440);
+    ctx.fillText("A/D = Move   W = Dash   S = Crouch   S+A/D(back) = Guard   J/K/L = Attacks", CANVAS_W / 2, 465);
+    ctx.fillText("H = Toggle Hitboxes", CANVAS_W / 2, 490);
   }
 
   drawResultScreen(playerWon: boolean): void {
@@ -477,6 +502,173 @@ export class Renderer {
     ctx.font = "20px monospace";
     ctx.fillText("Press ENTER or J to retry", CANVAS_W / 2, CANVAS_H / 2 + 40);
     ctx.fillText("Press ESC for title screen", CANVAS_W / 2, CANVAS_H / 2 + 70);
+  }
+
+  // --- Online screens ---
+
+  drawOnlineLobby(selection: number, error: string): void {
+    const ctx = this.ctx;
+    this.clear();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 48px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("ONLINE BATTLE", CANVAS_W / 2, 120);
+
+    const menuY = 250;
+    const options = ["CREATE ROOM", "JOIN ROOM"];
+    for (let i = 0; i < options.length; i++) {
+      const y = menuY + i * 60;
+      if (i === selection) {
+        ctx.fillStyle = "#ffcc00";
+        ctx.font = "bold 28px monospace";
+        ctx.fillText(`> ${options[i]} <`, CANVAS_W / 2, y);
+      } else {
+        ctx.fillStyle = "#888";
+        ctx.font = "24px monospace";
+        ctx.fillText(options[i], CANVAS_W / 2, y);
+      }
+    }
+
+    if (error) {
+      ctx.fillStyle = "#ff4444";
+      ctx.font = "18px monospace";
+      ctx.fillText(error, CANVAS_W / 2, 400);
+    }
+
+    ctx.fillStyle = "#666";
+    ctx.font = "14px monospace";
+    ctx.fillText("W/S to select   ENTER to confirm   ESC to go back", CANVAS_W / 2, 460);
+  }
+
+  drawOnlineWaiting(roomCode: string, state: string, message: string, error: string): void {
+    const ctx = this.ctx;
+    this.clear();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 36px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("WAITING FOR OPPONENT", CANVAS_W / 2, 140);
+
+    if (roomCode) {
+      ctx.fillStyle = "#aaaacc";
+      ctx.font = "20px monospace";
+      ctx.fillText("Share this room code:", CANVAS_W / 2, 230);
+
+      ctx.fillStyle = "#ffcc00";
+      ctx.font = "bold 64px monospace";
+      ctx.fillText(roomCode, CANVAS_W / 2, 300);
+    }
+
+    if (message) {
+      ctx.fillStyle = "#44ff44";
+      ctx.font = "24px monospace";
+      ctx.fillText(message, CANVAS_W / 2, 380);
+    }
+
+    if (error) {
+      ctx.fillStyle = "#ff4444";
+      ctx.font = "18px monospace";
+      ctx.fillText(error, CANVAS_W / 2, 420);
+    }
+
+    // Animated dots
+    const dots = ".".repeat(Math.floor(Date.now() / 500) % 4);
+    ctx.fillStyle = "#666";
+    ctx.font = "18px monospace";
+    ctx.fillText(`waiting${dots}`, CANVAS_W / 2, 450);
+
+    ctx.fillStyle = "#666";
+    ctx.font = "14px monospace";
+    ctx.fillText("ESC to cancel", CANVAS_W / 2, 490);
+  }
+
+  drawOnlineJoin(joinCode: string, message: string, error: string): void {
+    const ctx = this.ctx;
+    this.clear();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 36px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("JOIN ROOM", CANVAS_W / 2, 140);
+
+    ctx.fillStyle = "#aaaacc";
+    ctx.font = "20px monospace";
+    ctx.fillText("Enter 4-letter room code:", CANVAS_W / 2, 220);
+
+    // Code input boxes
+    const boxSize = 60;
+    const totalW = boxSize * 4 + 15 * 3;
+    const startX = CANVAS_W / 2 - totalW / 2;
+    const boxY = 260;
+
+    for (let i = 0; i < 4; i++) {
+      const bx = startX + i * (boxSize + 15);
+      // Box
+      ctx.strokeStyle = i < joinCode.length ? "#ffcc00" : (i === joinCode.length ? "#ffffff" : "#555");
+      ctx.lineWidth = 3;
+      ctx.strokeRect(bx, boxY, boxSize, boxSize);
+
+      // Letter
+      if (i < joinCode.length) {
+        ctx.fillStyle = "#ffcc00";
+        ctx.font = "bold 40px monospace";
+        ctx.fillText(joinCode[i], bx + boxSize / 2, boxY + boxSize / 2);
+      }
+    }
+
+    // Cursor blink
+    if (joinCode.length < 4) {
+      const blink = Math.floor(Date.now() / 500) % 2 === 0;
+      if (blink) {
+        const cx = startX + joinCode.length * (boxSize + 15) + boxSize / 2;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(cx - 1, boxY + boxSize - 10, 2, 8);
+      }
+    }
+
+    if (message) {
+      ctx.fillStyle = "#44ff44";
+      ctx.font = "20px monospace";
+      ctx.fillText(message, CANVAS_W / 2, 370);
+    }
+
+    if (error) {
+      ctx.fillStyle = "#ff4444";
+      ctx.font = "18px monospace";
+      ctx.fillText(error, CANVAS_W / 2, 400);
+    }
+
+    ctx.fillStyle = "#666";
+    ctx.font = "14px monospace";
+    ctx.fillText("Type room code   ENTER to join   ESC to go back", CANVAS_W / 2, 460);
+  }
+
+  drawWaitingIndicator(): void {
+    const ctx = this.ctx;
+    const dots = ".".repeat(Math.floor(Date.now() / 300) % 4);
+    ctx.fillStyle = "#ffcc00cc";
+    ctx.font = "bold 20px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`SYNCING${dots}`, CANVAS_W / 2, CANVAS_H / 2 - 80);
+  }
+
+  drawDisconnected(): void {
+    const ctx = this.ctx;
+    ctx.fillStyle = "#000000aa";
+    ctx.fillRect(0, CANVAS_H / 2 - 50, CANVAS_W, 100);
+    ctx.fillStyle = "#ff4444";
+    ctx.font = "bold 32px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("OPPONENT DISCONNECTED", CANVAS_W / 2, CANVAS_H / 2 - 10);
+    ctx.fillStyle = "#aaa";
+    ctx.font = "18px monospace";
+    ctx.fillText("Press ENTER or ESC to return", CANVAS_W / 2, CANVAS_H / 2 + 25);
   }
 }
 
