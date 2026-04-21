@@ -183,39 +183,58 @@ export class CpuAI {
         if (optimal) {
           // Choose between throw attempt (walk forward) and meaty heavy attack
           const okiRoll = Math.random();
-          if (okiRoll < 0.45) {
+          if (okiRoll < 0.40) {
             // Walk forward to attempt throw on wake-up
+            // Position close so auto-throw triggers when opponent gets up and guards
             this.setForward(self, input);
-            this.holdFrames = 8 + Math.floor(Math.random() * 10);
-          } else if (okiRoll < 0.80) {
-            // Time a heavy attack to land on wake-up
-            if (opponent.state === "getup" && opponent.stateTimer <= 10) {
+            this.holdFrames = 6 + Math.floor(Math.random() * 8);
+          } else if (okiRoll < 0.75) {
+            // Time a heavy attack to land as opponent gets up (meaty)
+            if (opponent.state === "getup" && opponent.stateTimer <= 12) {
               input.heavy = true;
+            } else if (opponent.state === "knockdown" && opponent.stateTimer <= 8) {
+              // Pre-walk into position during knockdown, attack next frame
+              this.setForward(self, input);
+              this.holdFrames = 3;
             } else {
-              // Walk forward to position, then will attack next decision
+              // Walk forward to position during knockdown
               this.setForward(self, input);
               this.holdFrames = 5;
             }
-          } else {
-            // Safe: medium attack
-            if (opponent.state === "getup" && opponent.stateTimer <= 6) {
+          } else if (okiRoll < 0.90) {
+            // Safe meaty: medium attack on wake-up
+            if (opponent.state === "getup" && opponent.stateTimer <= 8) {
               input.medium = true;
             } else {
               this.setForward(self, input);
               this.holdFrames = 4;
             }
+          } else {
+            // Bait: walk forward then block to bait a reversal
+            this.setForward(self, input);
+            this.holdFrames = 3;
           }
         } else {
-          // Suboptimal: just walk forward or do a random attack
-          if (Math.random() < 0.5) {
+          // Suboptimal: still attempt some oki
+          const subRoll = Math.random();
+          if (subRoll < 0.35) {
+            // Walk forward for throw
             this.setForward(self, input);
             this.holdFrames = 10;
-          } else {
+          } else if (subRoll < 0.60) {
             input.medium = true;
+          } else {
+            // Random heavy on wake-up
+            if (opponent.state === "getup" && opponent.stateTimer <= 10) {
+              input.heavy = true;
+            } else {
+              this.setForward(self, input);
+              this.holdFrames = 6;
+            }
           }
         }
         this.currentAction = input;
-        this.actionCooldown = 4 + Math.floor(Math.random() * 4);
+        this.actionCooldown = 3 + Math.floor(Math.random() * 3);
         return input;
       }
 
@@ -223,9 +242,23 @@ export class CpuAI {
       // Auto-throw triggers when walking forward within throw range,
       // so CPU just needs to walk forward when close to a guarding opponent
       const opponentGuarding = opponent.state === "walkBack" || opponent.state === "crouchGuard" || opponent.state === "blockstun";
-      if (opponentGuarding && dist < THROW_RANGE + 20 && optimal && Math.random() < 0.5) {
+      if (opponentGuarding && dist < THROW_RANGE + 20) {
+        // Throw attempt: optimal AI tries more often, suboptimal still tries sometimes
+        const throwChance = optimal ? 0.6 : 0.25;
+        if (Math.random() < throwChance) {
+          this.setForward(self, input);
+          this.holdFrames = 6;
+          this.currentAction = input;
+          this.actionCooldown = 3;
+          return input;
+        }
+      }
+
+      // --- Walk-in throw from slightly outside throw range ---
+      // If opponent is guarding and CPU is just outside throw range, walk in to throw
+      if (opponentGuarding && dist >= THROW_RANGE + 20 && dist < THROW_RANGE + 50 && optimal && Math.random() < 0.35) {
         this.setForward(self, input);
-        this.holdFrames = 6;
+        this.holdFrames = 8 + Math.floor(Math.random() * 6);
         this.currentAction = input;
         this.actionCooldown = 4;
         return input;
@@ -241,23 +274,31 @@ export class CpuAI {
             this.setBack(self, input);
             this.holdFrames = 15;
           }
-        } else if (roll < 0.45) {
+        } else if (roll < 0.40) {
           input.light = true;
-        } else if (roll < 0.70) {
+        } else if (roll < 0.60) {
           input.medium = true;
-        } else {
+        } else if (roll < 0.80) {
           // Backdash / create space
           this.setBack(self, input);
           this.holdFrames = 10;
+        } else {
+          // Walk forward to pressure (may lead to throw if opponent guards)
+          this.setForward(self, input);
+          this.holdFrames = 6 + Math.floor(Math.random() * 6);
         }
       } else {
         const r = Math.random();
-        if (r < 0.35) input.light = true;
-        else if (r < 0.55) input.medium = true;
-        else if (r < 0.65) input.heavy = true;
-        else {
+        if (r < 0.30) input.light = true;
+        else if (r < 0.50) input.medium = true;
+        else if (r < 0.60) input.heavy = true;
+        else if (r < 0.75) {
           this.setBack(self, input);
           this.holdFrames = 8;
+        } else {
+          // Suboptimal walk-in (may lead to throw)
+          this.setForward(self, input);
+          this.holdFrames = 6;
         }
       }
     }
