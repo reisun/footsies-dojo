@@ -3,6 +3,9 @@ import { InputHandler } from "./input";
 import { Game } from "./game";
 import { Renderer } from "./renderer";
 
+document.getElementById("how-to-play")?.addEventListener("click", (e) => {
+  (e.target as HTMLElement).blur();
+});
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const renderer = new Renderer(canvas);
 const input = new InputHandler();
