@@ -389,7 +389,11 @@ export class Renderer {
     ctx.fillStyle = "#aaa";
     ctx.font = "12px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(`ROUND ${game.round}`, CANVAS_W / 2, dotY + 4);
+    if (isOnline) {
+      ctx.fillText(`SET ${game.p1Sets} - ${game.p2Sets}  |  ROUND ${game.round}`, CANVAS_W / 2, dotY + 4);
+    } else {
+      ctx.fillText(`ROUND ${game.round}`, CANVAS_W / 2, dotY + 4);
+    }
 
     // Hit effect flash
     if (game.hitStop > 0) {
