@@ -59,8 +59,8 @@ function render(): void {
 
     case "battle":
       renderer.drawBackground();
-      renderer.drawFighter(game.player, "#4488cc", game.showHitboxes);
-      renderer.drawFighter(game.cpu, "#cc4444", game.showHitboxes);
+      renderer.drawFighter(game.player, "#4488cc", game.showHitboxes, false);
+      renderer.drawFighter(game.cpu, "#cc4444", game.showHitboxes, true);
       renderer.drawHUD(game);
       if (game.roundMessage) {
         renderer.drawRoundMessage(game.roundMessage);
@@ -69,8 +69,8 @@ function render(): void {
 
     case "result":
       renderer.drawBackground();
-      renderer.drawFighter(game.player, "#4488cc", false);
-      renderer.drawFighter(game.cpu, "#cc4444", false);
+      renderer.drawFighter(game.player, "#4488cc", false, false);
+      renderer.drawFighter(game.cpu, "#cc4444", false, true);
       renderer.drawHUD(game);
       renderer.drawResultScreen(game.matchWinner === "player");
       break;

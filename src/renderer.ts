@@ -62,7 +62,7 @@ export class Renderer {
     ctx.setLineDash([]);
   }
 
-  drawFighter(fighter: Fighter, color: string, showHitboxes: boolean): void {
+  drawFighter(fighter: Fighter, color: string, showHitboxes: boolean, isEnemy: boolean = false): void {
     const ctx = this.ctx;
     const x = fighter.x;
     const y = GROUND_Y;
@@ -217,8 +217,9 @@ export class Renderer {
       // Idle arms
       const armY = by - bodyH * 0.65;
       ctx.fillStyle = shadeColor(color, -10);
-      // Front arm
-      ctx.fillRect(bx + f * (bodyW / 2 - 6), armY - 3, 12, 6);
+      // Front arm - enemy has hand extended further toward opponent (by ~1 head width)
+      const frontArmOffset = isEnemy ? headSize : 0;
+      ctx.fillRect(bx + f * (bodyW / 2 - 6 + frontArmOffset), armY - 3, 12, 6);
       // Back arm
       ctx.fillRect(bx - f * (bodyW / 2 + 2), armY + 2, 10, 5);
     }
