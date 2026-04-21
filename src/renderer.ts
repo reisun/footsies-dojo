@@ -129,17 +129,9 @@ export class Renderer {
     const bodyW = CHAR_W * squish;
     const bodyH = isCrouching ? CHAR_H * 0.7 : CHAR_H;
 
-    // Torso - slightly shifted toward facing direction for stance feel
-    const torsoShift = f * 2;
+    // Torso
     ctx.fillStyle = color;
-    ctx.fillRect(bx - bodyW / 2 + torsoShift, by - bodyH, bodyW, bodyH * 0.6);
-
-    // Front shoulder highlight (brighter on the facing side)
-    ctx.fillStyle = shadeColor(color, 25);
-    const shoulderX = f === 1
-      ? bx + bodyW / 2 + torsoShift - 8
-      : bx - bodyW / 2 + torsoShift;
-    ctx.fillRect(shoulderX, by - bodyH, 8, bodyH * 0.15);
+    ctx.fillRect(bx - bodyW / 2, by - bodyH, bodyW, bodyH * 0.6);
 
     // Legs
     const legColor = shadeColor(color, -30);
@@ -149,27 +141,25 @@ export class Renderer {
       ctx.fillRect(bx - bodyW / 2 - 4, by - bodyH * 0.4, bodyW * 0.45, bodyH * 0.4);
       ctx.fillRect(bx + bodyW * 0.05 + 4, by - bodyH * 0.4, bodyW * 0.45, bodyH * 0.4);
     } else {
-      // Front leg slightly forward
-      ctx.fillRect(bx - bodyW / 2 + f * 3, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
-      ctx.fillRect(bx + bodyW * 0.1 - f * 3, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
+      ctx.fillRect(bx - bodyW / 2, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
+      ctx.fillRect(bx + bodyW * 0.1, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
     }
 
     // Walking animation
     if (fighter.state === "walkForward" || fighter.state === "walkBack") {
       const legAnim = Math.sin(Date.now() / 80) * 4;
       ctx.fillStyle = legColor;
-      ctx.fillRect(bx - bodyW / 2 + f * 3, by - bodyH * 0.4 + legAnim, bodyW * 0.4, bodyH * 0.4);
+      ctx.fillRect(bx - bodyW / 2, by - bodyH * 0.4 + legAnim, bodyW * 0.4, bodyH * 0.4);
     }
 
-    // Head - shifted toward facing direction
+    // Head
     const headSize = 16;
-    const headShift = f * 3;
     ctx.fillStyle = "#ddb892";
-    ctx.fillRect(bx - headSize / 2 + headShift, by - bodyH - headSize + 4, headSize, headSize);
+    ctx.fillRect(bx - headSize / 2, by - bodyH - headSize + 4, headSize, headSize);
 
-    // Eyes - on the facing side of the head
+    // Eyes
     ctx.fillStyle = "#222";
-    const eyeX = bx + headShift + f * 4;
+    const eyeX = bx + f * 3;
     ctx.fillRect(eyeX - 1, by - bodyH - headSize + 10, 3, 3);
 
     // --- Draw arms / attack ---
