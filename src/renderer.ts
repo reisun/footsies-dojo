@@ -412,12 +412,20 @@ export class Renderer {
     const ctx = this.ctx;
     this.clear();
 
-    // Title
-    ctx.fillStyle = "#ffffff";
+    // Title (clickable link)
+    ctx.fillStyle = "#88aaff";
     ctx.font = "bold 56px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("FOOTSIES DOJO", CANVAS_W / 2, 140);
+    // Underline
+    const titleWidth = ctx.measureText("FOOTSIES DOJO").width;
+    ctx.strokeStyle = "#88aaff";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_W / 2 - titleWidth / 2, 140 + 30);
+    ctx.lineTo(CANVAS_W / 2 + titleWidth / 2, 140 + 30);
+    ctx.stroke();
 
     // Subtitle
     ctx.fillStyle = "#aaaacc";

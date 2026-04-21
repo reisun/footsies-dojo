@@ -1,12 +1,60 @@
-import { FRAME_MS } from "./types";
+import { FRAME_MS, CANVAS_W } from "./types";
 import { InputHandler } from "./input";
 import { Game } from "./game";
 import { Renderer } from "./renderer";
+
+const README_URL = "https://github.com/reisun/footsies-dojo#readme";
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const renderer = new Renderer(canvas);
 const input = new InputHandler();
 const game = new Game();
+
+// Title click → open README
+canvas.addEventListener("click", (e) => {
+  if (game.screen !== "title") return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const cx = (e.clientX - rect.left) * scaleX;
+  const cy = (e.clientY - rect.top) * scaleY;
+  // Title text area: centered at (CANVAS_W/2, 140), approx 500x60
+  const titleW = 500;
+  const titleH = 60;
+  if (
+    cx >= CANVAS_W / 2 - titleW / 2 &&
+    cx <= CANVAS_W / 2 + titleW / 2 &&
+    cy >= 140 - titleH / 2 &&
+    cy <= 140 + titleH / 2
+  ) {
+    window.open(README_URL, "_blank");
+  }
+});
+
+// Pointer cursor on title hover
+canvas.addEventListener("mousemove", (e) => {
+  if (game.screen !== "title") {
+    canvas.style.cursor = "default";
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const cx = (e.clientX - rect.left) * scaleX;
+  const cy = (e.clientY - rect.top) * scaleY;
+  const titleW = 500;
+  const titleH = 60;
+  if (
+    cx >= CANVAS_W / 2 - titleW / 2 &&
+    cx <= CANVAS_W / 2 + titleW / 2 &&
+    cy >= 140 - titleH / 2 &&
+    cy <= 140 + titleH / 2
+  ) {
+    canvas.style.cursor = "pointer";
+  } else {
+    canvas.style.cursor = "default";
+  }
+});
 
 let lastTime = 0;
 let accumulator = 0;
