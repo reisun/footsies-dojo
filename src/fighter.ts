@@ -18,8 +18,8 @@ const WALK_SPEED = 3.0;
 const BACK_WALK_SPEED = 2.2;
 const DASH_SPEED = 9;
 const DASH_DURATION = 12; // frames
-const KNOCKDOWN_DURATION = 30;
-const GETUP_DURATION = 15;
+const KNOCKDOWN_DURATION = 36;
+const GETUP_DURATION = 18;
 
 // Throw constants
 export const THROW_RANGE = 55; // slightly larger than push distance (48) so throw can trigger
