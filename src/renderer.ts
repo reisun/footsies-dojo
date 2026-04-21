@@ -217,11 +217,12 @@ export class Renderer {
       // Idle arms
       const armY = by - bodyH * 0.65;
       ctx.fillStyle = shadeColor(color, -10);
-      // Front arm - enemy has hand extended further toward opponent (by ~1 head width)
-      const frontArmOffset = isEnemy ? headSize : 0;
-      ctx.fillRect(bx + f * (bodyW / 2 - 6 + frontArmOffset), armY - 3, 12, 6);
+      // Enemy has both hands extended further toward opponent (by ~1 head width)
+      const handOffset = isEnemy ? headSize : 0;
+      // Front arm
+      ctx.fillRect(bx + f * (bodyW / 2 - 6 + handOffset), armY - 3, 12, 6);
       // Back arm
-      ctx.fillRect(bx - f * (bodyW / 2 + 2), armY + 2, 10, 5);
+      ctx.fillRect(bx - f * (bodyW / 2 + 2 - handOffset), armY + 2, 10, 5);
     }
 
     // Guard indicator (on the side facing the opponent)
