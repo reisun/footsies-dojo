@@ -40,6 +40,7 @@ export class InputHandler {
     return {
       left: this.isDown("a"),
       right: this.isDown("d"),
+      down: this.isDown("s"),
       dash: this.wasPressed("w"),
       light: this.wasPressed("j"),
       medium: this.wasPressed("k"),

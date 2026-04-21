@@ -21,6 +21,7 @@ export type FighterState =
   | "idle"
   | "walkForward"
   | "walkBack"
+  | "crouch"
   | "dash"
   | "attack"
   | "hitstun"
@@ -81,6 +82,7 @@ export type Difficulty = "easy" | "normal" | "hard";
 export interface InputState {
   left: boolean;
   right: boolean;
+  down: boolean;
   dash: boolean;
   light: boolean;
   medium: boolean;

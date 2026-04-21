@@ -58,7 +58,7 @@ export class Fighter {
   }
 
   get isActionable(): boolean {
-    return this.state === "idle" || this.state === "walkForward" || this.state === "walkBack";
+    return this.state === "idle" || this.state === "walkForward" || this.state === "walkBack" || this.state === "crouch";
   }
 
   get isAttacking(): boolean {
@@ -66,7 +66,7 @@ export class Fighter {
   }
 
   get isGuarding(): boolean {
-    return this.state === "walkBack" && !this.isAttacking;
+    return (this.state === "walkBack" || this.state === "crouch") && !this.isAttacking;
   }
 
   get hurtbox(): Hitbox {
@@ -97,6 +97,17 @@ export class Fighter {
           h: CHAR_H,
         };
       }
+    }
+
+    // Crouching: shorter hurtbox
+    if (this.state === "crouch") {
+      const crouchH = CHAR_H * 0.7;
+      return {
+        x: this.x - CHAR_W / 2,
+        y: GROUND_Y - crouchH,
+        w: CHAR_W,
+        h: crouchH,
+      };
     }
 
     return {
@@ -153,6 +164,13 @@ export class Fighter {
     }
     if (input.heavy) {
       this.startAttack("heavy");
+      return;
+    }
+
+    // Crouch (guard without moving)
+    if (input.down) {
+      this.state = "crouch";
+      this.velocityX = 0;
       return;
     }
 

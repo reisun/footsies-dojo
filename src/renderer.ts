@@ -73,7 +73,13 @@ export class Renderer {
     let bodyOffsetX = 0;
     let squish = 1.0;
 
+    let isCrouching = fighter.state === "crouch";
+
     switch (fighter.state) {
+      case "crouch":
+        bodyOffsetY = 16;
+        squish = 1.1;
+        break;
       case "hitstun":
         bodyOffsetX = -f * 4;
         break;
@@ -109,7 +115,7 @@ export class Renderer {
 
     // --- Draw body ---
     const bodyW = CHAR_W * squish;
-    const bodyH = CHAR_H;
+    const bodyH = isCrouching ? CHAR_H * 0.7 : CHAR_H;
 
     // Torso
     ctx.fillStyle = color;
@@ -118,8 +124,14 @@ export class Renderer {
     // Legs
     const legColor = shadeColor(color, -30);
     ctx.fillStyle = legColor;
-    ctx.fillRect(bx - bodyW / 2, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
-    ctx.fillRect(bx + bodyW * 0.1, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
+    if (isCrouching) {
+      // Crouching: wider, bent legs
+      ctx.fillRect(bx - bodyW / 2 - 4, by - bodyH * 0.4, bodyW * 0.45, bodyH * 0.4);
+      ctx.fillRect(bx + bodyW * 0.05 + 4, by - bodyH * 0.4, bodyW * 0.45, bodyH * 0.4);
+    } else {
+      ctx.fillRect(bx - bodyW / 2, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
+      ctx.fillRect(bx + bodyW * 0.1, by - bodyH * 0.4, bodyW * 0.4, bodyH * 0.4);
+    }
 
     // Walking animation
     if (fighter.state === "walkForward" || fighter.state === "walkBack") {
@@ -195,6 +207,15 @@ export class Renderer {
     if (fighter.state === "walkBack") {
       ctx.fillStyle = "#4488ffaa";
       ctx.fillRect(bx + f * (bodyW / 2), by - bodyH + 5, 4, bodyH - 10);
+    }
+    if (fighter.state === "crouch") {
+      ctx.fillStyle = "#4488ffaa";
+      ctx.fillRect(bx + f * (bodyW / 2), by - bodyH + 5, 4, bodyH - 10);
+      // Small shield icon above
+      ctx.fillStyle = "#4488ff66";
+      ctx.beginPath();
+      ctx.arc(bx + f * (bodyW / 2 + 6), by - bodyH + bodyH / 2, 8, 0, Math.PI * 2);
+      ctx.fill();
     }
     if (fighter.state === "blockstun") {
       ctx.fillStyle = "#4488ffcc";
@@ -370,7 +391,7 @@ export class Renderer {
     ctx.fillStyle = "#666";
     ctx.font = "14px monospace";
     ctx.fillText("W/S or UP/DOWN to select   ENTER or J to start", CANVAS_W / 2, 460);
-    ctx.fillText("A/D = Move   W = Dash   J = Light   K = Medium   L = Heavy", CANVAS_W / 2, 485);
+    ctx.fillText("A/D = Move   W = Dash   S = Crouch Guard   J/K/L = Light/Med/Heavy", CANVAS_W / 2, 485);
     ctx.fillText("H = Toggle Hitboxes", CANVAS_W / 2, 505);
   }
 

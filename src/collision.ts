@@ -21,9 +21,10 @@ export function resolveAttacks(a: Fighter, b: Fighter): { hitA: boolean; hitB: b
       a.attackHitConfirmed = true;
       const ad = a.attackData!;
 
-      // Check if B is guarding (walking back and not attacking/in hitstun)
+      // Check if B is guarding (walking back, crouching, or in blockstun)
       const bIsGuarding =
         b.state === "walkBack" ||
+        b.state === "crouch" ||
         (b.state === "blockstun");
 
       if (bIsGuarding && b.state !== "attack" && b.state !== "hitstun" && b.state !== "knockdown" && b.state !== "dash") {
@@ -50,6 +51,7 @@ export function resolveAttacks(a: Fighter, b: Fighter): { hitA: boolean; hitB: b
 
       const aIsGuarding =
         a.state === "walkBack" ||
+        a.state === "crouch" ||
         (a.state === "blockstun");
 
       if (aIsGuarding && a.state !== "attack" && a.state !== "hitstun" && a.state !== "knockdown" && a.state !== "dash") {

@@ -81,10 +81,15 @@ export class CpuAI {
         } else if (roll < 0.55) {
           input.heavy = true;
         } else if (roll < 0.7) {
-          // Walk back (guard)
-          if (self.facing === 1) input.left = true;
-          else input.right = true;
-          this.holdFrames = 8 + Math.floor(Math.random() * 12);
+          // Guard: crouch or walk back
+          if (Math.random() < 0.4) {
+            input.down = true;
+            this.holdFrames = 8 + Math.floor(Math.random() * 12);
+          } else {
+            if (self.facing === 1) input.left = true;
+            else input.right = true;
+            this.holdFrames = 8 + Math.floor(Math.random() * 12);
+          }
         } else {
           // Walk forward to pressure
           if (self.facing === 1) input.right = true;
@@ -107,10 +112,15 @@ export class CpuAI {
       // Close range
       if (optimal) {
         if (opponent.isAttacking) {
-          // Block (walk back)
-          if (self.facing === 1) input.left = true;
-          else input.right = true;
-          this.holdFrames = 15;
+          // Block: crouch guard or walk-back guard
+          if (Math.random() < 0.5) {
+            input.down = true;
+            this.holdFrames = 15;
+          } else {
+            if (self.facing === 1) input.left = true;
+            else input.right = true;
+            this.holdFrames = 15;
+          }
         } else if (roll < 0.5) {
           input.light = true;
         } else if (roll < 0.75) {
@@ -142,5 +152,5 @@ export class CpuAI {
 }
 
 function emptyInput(): InputState {
-  return { left: false, right: false, dash: false, light: false, medium: false, heavy: false };
+  return { left: false, right: false, down: false, dash: false, light: false, medium: false, heavy: false };
 }
