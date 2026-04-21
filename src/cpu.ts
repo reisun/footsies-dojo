@@ -18,6 +18,9 @@ export class CpuAI {
   private actionCooldown = 0;
   private currentAction: InputState = emptyInput();
   private holdFrames = 0;
+  /** "wait and punish" mode: crouch-guard and watch for heavy, then counter */
+  private waitForHeavyMode = false;
+  private waitModeFrames = 0;
 
   constructor(difficulty: Difficulty) {
     this.params = DIFFICULTY_PARAMS[difficulty];
@@ -25,6 +28,24 @@ export class CpuAI {
 
   setDifficulty(difficulty: Difficulty): void {
     this.params = DIFFICULTY_PARAMS[difficulty];
+  }
+
+  /** Helper: set back direction input */
+  private setBack(self: Fighter, input: InputState): void {
+    if (self.facing === 1) input.left = true;
+    else input.right = true;
+  }
+
+  /** Helper: set forward direction input */
+  private setForward(self: Fighter, input: InputState): void {
+    if (self.facing === 1) input.right = true;
+    else input.left = true;
+  }
+
+  /** Helper: set crouch guard (down + back) */
+  private setCrouchGuard(self: Fighter, input: InputState): void {
+    input.down = true;
+    this.setBack(self, input);
   }
 
   getInput(self: Fighter, opponent: Fighter): InputState {
@@ -46,105 +67,145 @@ export class CpuAI {
     const dist = Math.abs(self.x - opponent.x);
     const input = emptyInput();
 
+    // --- "Wait for heavy" mode: crouch guard and watch for opponent heavy ---
+    if (this.waitForHeavyMode) {
+      this.waitModeFrames--;
+      if (this.waitModeFrames <= 0) {
+        // Patience ran out, exit wait mode
+        this.waitForHeavyMode = false;
+      } else if (
+        opponent.isAttacking &&
+        opponent.attackData?.type === "heavy" &&
+        opponent.attackFrame > (opponent.attackData?.startup ?? 0) + (opponent.attackData?.active ?? 0)
+      ) {
+        // Opponent threw a heavy and is now recovering → punish!
+        this.waitForHeavyMode = false;
+        input.medium = true;
+        this.currentAction = input;
+        this.actionCooldown = 2; // Quick reaction for punish
+        return input;
+      } else {
+        // Keep crouch guarding while waiting
+        this.setCrouchGuard(self, input);
+        this.currentAction = input;
+        this.holdFrames = 5;
+        this.actionCooldown = 5;
+        return input;
+      }
+    }
+
     // Decision making
     const roll = Math.random();
     const optimal = Math.random() < this.params.optimalRate;
 
     if (dist > 200) {
-      // Far range: approach or wait
-      if (roll < this.params.aggressiveness) {
-        if (optimal && roll < 0.15) {
+      // Far range: approach more aggressively
+      const approachChance = this.params.aggressiveness + 0.25; // Bias toward walking in
+      if (roll < approachChance) {
+        if (optimal && roll < 0.12) {
           input.dash = true;
         } else {
-          // Walk forward
-          if (self.facing === 1) input.right = true;
-          else input.left = true;
-          this.holdFrames = 15 + Math.floor(Math.random() * 20);
+          // Walk forward - more frequently and longer
+          this.setForward(self, input);
+          this.holdFrames = 20 + Math.floor(Math.random() * 25);
         }
       } else {
-        // Wait / slight backward movement
-        if (Math.random() < 0.3) {
-          if (self.facing === 1) input.left = true;
-          else input.right = true;
-          this.holdFrames = 5 + Math.floor(Math.random() * 10);
+        // Occasionally crouch guard while waiting at range
+        if (Math.random() < 0.4) {
+          this.setCrouchGuard(self, input);
+          this.holdFrames = 10 + Math.floor(Math.random() * 15);
+        } else if (Math.random() < 0.3) {
+          this.setBack(self, input);
+          this.holdFrames = 5 + Math.floor(Math.random() * 8);
         }
       }
     } else if (dist > 120) {
-      // Medium range: poke zone
+      // Medium range: poke zone — key distance for footsies
+
+      // Check for whiff punish opportunity first (always try if possible)
+      if (
+        opponent.isAttacking &&
+        opponent.attackFrame > (opponent.attackData?.startup ?? 0) + (opponent.attackData?.active ?? 0)
+      ) {
+        // Opponent is recovering - punish!
+        input.medium = true;
+        this.currentAction = input;
+        this.actionCooldown = 2;
+        return input;
+      }
+
       if (optimal) {
-        // Whiff punish or preemptive poke
-        if (opponent.isAttacking && opponent.attackFrame > (opponent.attackData?.startup ?? 0) + (opponent.attackData?.active ?? 0)) {
-          // Opponent is recovering - punish with medium
+        // Sometimes enter "wait for heavy" mode to bait and punish
+        if (Math.random() < 0.15) {
+          this.waitForHeavyMode = true;
+          this.waitModeFrames = 40 + Math.floor(Math.random() * 30); // Wait 40-70 frames
+          this.setCrouchGuard(self, input);
+          this.currentAction = input;
+          this.holdFrames = 5;
+          this.actionCooldown = 5;
+          return input;
+        }
+
+        if (roll < 0.25) {
           input.medium = true;
-        } else if (roll < 0.35) {
-          input.medium = true;
-        } else if (roll < 0.55) {
+        } else if (roll < 0.40) {
           input.heavy = true;
-        } else if (roll < 0.7) {
-          // Guard: crouch guard (down + back) or walk back
-          if (Math.random() < 0.4) {
-            input.down = true;
-            // Also press back to actually guard
-            if (self.facing === 1) input.left = true;
-            else input.right = true;
-            this.holdFrames = 8 + Math.floor(Math.random() * 12);
-          } else {
-            if (self.facing === 1) input.left = true;
-            else input.right = true;
-            this.holdFrames = 8 + Math.floor(Math.random() * 12);
-          }
+        } else if (roll < 0.65) {
+          // Crouch guard at medium range — hard to hit
+          this.setCrouchGuard(self, input);
+          this.holdFrames = 10 + Math.floor(Math.random() * 15);
+        } else if (roll < 0.80) {
+          // Walk forward to close distance
+          this.setForward(self, input);
+          this.holdFrames = 8 + Math.floor(Math.random() * 12);
         } else {
-          // Walk forward to pressure
-          if (self.facing === 1) input.right = true;
-          else input.left = true;
-          this.holdFrames = 5 + Math.floor(Math.random() * 8);
+          // Walk-back guard
+          this.setBack(self, input);
+          this.holdFrames = 8 + Math.floor(Math.random() * 10);
         }
       } else {
         // Suboptimal: random action
         const r = Math.random();
-        if (r < 0.25) input.light = true;
-        else if (r < 0.45) input.medium = true;
-        else if (r < 0.55) input.heavy = true;
-        else {
-          if (self.facing === 1) input.left = true;
-          else input.right = true;
-          this.holdFrames = 10;
+        if (r < 0.20) input.light = true;
+        else if (r < 0.40) input.medium = true;
+        else if (r < 0.50) input.heavy = true;
+        else if (r < 0.70) {
+          // Even suboptimal CPU crouches sometimes
+          this.setCrouchGuard(self, input);
+          this.holdFrames = 8 + Math.floor(Math.random() * 10);
+        } else {
+          this.setForward(self, input);
+          this.holdFrames = 8;
         }
       }
     } else {
       // Close range
       if (optimal) {
         if (opponent.isAttacking) {
-          // Block: crouch guard (down + back) or walk-back guard
-          if (Math.random() < 0.5) {
-            input.down = true;
-            // Also press back to actually guard
-            if (self.facing === 1) input.left = true;
-            else input.right = true;
+          // Block: prefer crouch guard at close range
+          if (Math.random() < 0.6) {
+            this.setCrouchGuard(self, input);
             this.holdFrames = 15;
           } else {
-            if (self.facing === 1) input.left = true;
-            else input.right = true;
+            this.setBack(self, input);
             this.holdFrames = 15;
           }
-        } else if (roll < 0.5) {
+        } else if (roll < 0.45) {
           input.light = true;
-        } else if (roll < 0.75) {
+        } else if (roll < 0.70) {
           input.medium = true;
         } else {
           // Backdash / create space
-          if (self.facing === 1) input.left = true;
-          else input.right = true;
+          this.setBack(self, input);
           this.holdFrames = 10;
         }
       } else {
         const r = Math.random();
-        if (r < 0.4) input.light = true;
-        else if (r < 0.6) input.medium = true;
-        else if (r < 0.7) input.heavy = true;
+        if (r < 0.35) input.light = true;
+        else if (r < 0.55) input.medium = true;
+        else if (r < 0.65) input.heavy = true;
         else {
-          if (self.facing === 1) input.left = true;
-          else input.right = true;
+          this.setBack(self, input);
           this.holdFrames = 8;
         }
       }
