@@ -22,7 +22,7 @@ const KNOCKDOWN_DURATION = 30;
 const GETUP_DURATION = 15;
 
 // Throw constants
-export const THROW_RANGE = 40; // must be closer than light attack range (55)
+export const THROW_RANGE = 55; // slightly larger than push distance (48) so throw can trigger
 export const THROW_DAMAGE = 100; // same as medium attack
 export const THROW_STARTUP = 6; // frames before throw connects
 export const THROW_ACTIVE = 10; // frames of throw animation after connecting
