@@ -70,6 +70,35 @@ export class Fighter {
   }
 
   get hurtbox(): Hitbox {
+    // Extend hurtbox during attack (active + recovery) to enable whiff punishment
+    if (this.state === "attack" && this.attackData) {
+      const ad = this.attackData;
+      if (this.attackFrame >= ad.startup) {
+        // During active and recovery frames, the limb is extended
+        // Extension is larger during recovery (committed, vulnerable)
+        let extension: number;
+        if (this.attackFrame < ad.startup + ad.active) {
+          // Active frames: moderate extension
+          extension = ad.range * 0.5;
+        } else {
+          // Recovery frames: still extended, gradually retracting
+          const recFrame = this.attackFrame - ad.startup - ad.active;
+          extension = ad.range * 0.5 * (1 - recFrame / ad.recovery);
+        }
+
+        const baseX = this.x - CHAR_W / 2;
+        const extX = this.facing === 1
+          ? baseX
+          : baseX - extension;
+        return {
+          x: extX,
+          y: GROUND_Y - CHAR_H,
+          w: CHAR_W + extension,
+          h: CHAR_H,
+        };
+      }
+    }
+
     return {
       x: this.x - CHAR_W / 2,
       y: GROUND_Y - CHAR_H,

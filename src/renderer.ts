@@ -191,10 +191,10 @@ export class Renderer {
       ctx.fillRect(bx - f * (bodyW / 2 + 2), armY + 2, 10, 5);
     }
 
-    // Guard indicator
+    // Guard indicator (on the side facing the opponent)
     if (fighter.state === "walkBack") {
       ctx.fillStyle = "#4488ffaa";
-      ctx.fillRect(bx + f * (-bodyW / 2 - 4), by - bodyH + 5, 4, bodyH - 10);
+      ctx.fillRect(bx + f * (bodyW / 2), by - bodyH + 5, 4, bodyH - 10);
     }
     if (fighter.state === "blockstun") {
       ctx.fillStyle = "#4488ffcc";
