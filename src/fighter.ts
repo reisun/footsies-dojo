@@ -223,7 +223,7 @@ export class Fighter {
     this.hp = Math.max(0, this.hp - damage);
     this.state = "hitstun";
     this.stateTimer = hitstunFrames;
-    this.velocityX = pushback * -fromFacing;
+    this.velocityX = pushback * fromFacing;
     this.attackData = null;
     this.attackFrame = 0;
     this.comboCount++;
@@ -233,7 +233,7 @@ export class Fighter {
     this.hp = Math.max(0, this.hp - chipDamage);
     this.state = "blockstun";
     this.stateTimer = blockstunFrames;
-    this.velocityX = pushback * -fromFacing;
+    this.velocityX = pushback * fromFacing;
     this.attackData = null;
     this.attackFrame = 0;
   }
@@ -242,7 +242,7 @@ export class Fighter {
     this.hp = Math.max(0, this.hp - damage);
     this.state = "knockdown";
     this.stateTimer = KNOCKDOWN_DURATION;
-    this.velocityX = pushback * -fromFacing;
+    this.velocityX = pushback * fromFacing;
     this.attackData = null;
     this.attackFrame = 0;
   }
