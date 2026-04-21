@@ -127,7 +127,7 @@ export class Fighter {
     const reach = ad.range;
     const hbW = reach;
     const hbH = 24;
-    const hbX = this.facing === 1 ? this.x + CHAR_W / 2 - 8 : this.x - CHAR_W / 2 + 8 - hbW;
+    const hbX = this.facing === 1 ? this.x + CHAR_W / 2 + 4 : this.x - CHAR_W / 2 - 4 - hbW;
     const hbY = GROUND_Y - CHAR_H * 0.55;
 
     return { x: hbX, y: hbY, w: hbW, h: hbH };
