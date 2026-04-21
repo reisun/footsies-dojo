@@ -124,11 +124,12 @@ export class Fighter {
     if (this.attackFrame < ad.startup) return null;
     if (this.attackFrame >= ad.startup + ad.active) return null;
 
-    const reach = ad.range;
+    const reach = ad.range * 0.8;
     const hbW = reach;
     const hbH = 24;
-    const hbX = this.facing === 1 ? this.x + CHAR_W / 2 + 16 : this.x - CHAR_W / 2 - 16 - hbW;
-    const hbY = GROUND_Y - CHAR_H * 0.55;
+    const armStart = CHAR_W / 2 - 4;
+    const hbX = this.facing === 1 ? this.x + armStart : this.x - armStart - hbW;
+    const hbY = GROUND_Y - CHAR_H * 0.65;
 
     return { x: hbX, y: hbY, w: hbW, h: hbH };
   }
