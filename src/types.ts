@@ -25,6 +25,8 @@ export type FighterState =
   | "crouchGuard"
   | "dash"
   | "attack"
+  | "throw"
+  | "thrown"
   | "hitstun"
   | "blockstun"
   | "knockdown"

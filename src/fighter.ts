@@ -21,6 +21,18 @@ const DASH_DURATION = 12; // frames
 const KNOCKDOWN_DURATION = 30;
 const GETUP_DURATION = 15;
 
+// Throw constants
+export const THROW_RANGE = 40; // must be closer than light attack range (55)
+export const THROW_DAMAGE = 100; // same as medium attack
+export const THROW_STARTUP = 6; // frames before throw connects
+export const THROW_ACTIVE = 10; // frames of throw animation after connecting
+export const THROW_RECOVERY = 12; // frames after throw animation
+const THROW_PUSHBACK = 18;
+
+// Dash bounce constants
+const DASH_BOUNCE_TARGET_DIST = 80; // bounce back to medium attack range
+const DASH_BOUNCE_SPEED = 6;
+
 export class Fighter {
   x: number;
   hp = MAX_HP;
@@ -33,6 +45,13 @@ export class Fighter {
   attackData: AttackData | null = null;
   attackFrame = 0;
   attackHitConfirmed = false; // prevent multi-hit
+
+  // Throw state
+  throwFrame = 0;
+  throwHitConfirmed = false; // true once throw grab connects
+
+  // Dash bounce state
+  dashBouncing = false;
 
   roundsWon = 0;
 
@@ -54,6 +73,9 @@ export class Fighter {
     this.attackData = null;
     this.attackFrame = 0;
     this.attackHitConfirmed = false;
+    this.throwFrame = 0;
+    this.throwHitConfirmed = false;
+    this.dashBouncing = false;
     this.comboCount = 0;
   }
 
@@ -65,13 +87,17 @@ export class Fighter {
     return this.state === "attack";
   }
 
+  get isThrowing(): boolean {
+    return this.state === "throw";
+  }
+
   get isGuarding(): boolean {
     return (this.state === "walkBack" || this.state === "crouchGuard") && !this.isAttacking;
   }
 
   get hurtbox(): Hitbox {
-    // No hurtbox during knockdown and getup — invincible until fully recovered
-    if (this.state === "knockdown" || this.state === "getup") {
+    // No hurtbox during knockdown, getup, throw, thrown — invincible
+    if (this.state === "knockdown" || this.state === "getup" || this.state === "throw" || this.state === "thrown") {
       return { x: -9999, y: -9999, w: 0, h: 0 };
     }
 
@@ -205,6 +231,15 @@ export class Fighter {
     }
   }
 
+  startThrow(): void {
+    this.state = "throw";
+    this.throwFrame = 0;
+    this.throwHitConfirmed = false;
+    this.velocityX = 0;
+    this.attackData = null;
+    this.attackFrame = 0;
+  }
+
   private startAttack(type: AttackType): void {
     this.state = "attack";
     this.attackData = ATTACKS[type];
@@ -236,9 +271,49 @@ export class Fighter {
 
       case "dash":
         this.stateTimer--;
-        if (this.stateTimer <= 0) {
+        // Dash bounce: if bouncing, decelerate and stop
+        if (this.dashBouncing) {
+          this.velocityX *= 0.85;
+          if (Math.abs(this.velocityX) < 0.5 || this.stateTimer <= 0) {
+            this.state = "idle";
+            this.velocityX = 0;
+            this.dashBouncing = false;
+          }
+        } else if (this.stateTimer <= 0) {
           this.state = "idle";
           this.velocityX = 0;
+        }
+        break;
+
+      case "throw":
+        this.throwFrame++;
+        if (!this.throwHitConfirmed) {
+          // Startup phase: waiting for grab to connect (handled by collision)
+          if (this.throwFrame >= THROW_STARTUP) {
+            // Throw whiffed (opponent moved away) — go to recovery
+            this.throwHitConfirmed = false;
+            this.state = "idle";
+            this.throwFrame = 0;
+            this.velocityX = 0;
+          }
+        } else {
+          // Throw connected: play animation then recover
+          if (this.throwFrame >= THROW_STARTUP + THROW_ACTIVE + THROW_RECOVERY) {
+            this.state = "idle";
+            this.throwFrame = 0;
+            this.throwHitConfirmed = false;
+            this.velocityX = 0;
+          }
+        }
+        break;
+
+      case "thrown":
+        // Being thrown — stateTimer counts down, then enter knockdown
+        this.stateTimer--;
+        if (this.stateTimer <= 0) {
+          this.state = "knockdown";
+          this.stateTimer = KNOCKDOWN_DURATION;
+          this.velocityX = THROW_PUSHBACK * -this.facing;
         }
         break;
 
@@ -308,5 +383,22 @@ export class Fighter {
     this.velocityX = pushback * fromFacing;
     this.attackData = null;
     this.attackFrame = 0;
+  }
+
+  takeThrown(damage: number): void {
+    this.hp = Math.max(0, this.hp - damage);
+    this.state = "thrown";
+    this.stateTimer = THROW_ACTIVE; // held during throw animation
+    this.velocityX = 0;
+    this.attackData = null;
+    this.attackFrame = 0;
+  }
+
+  /** Start dash bounce (reverse direction away from opponent) */
+  startDashBounce(opponentX: number): void {
+    this.dashBouncing = true;
+    const awayDir = this.x < opponentX ? -1 : 1;
+    this.velocityX = DASH_BOUNCE_SPEED * awayDir;
+    this.stateTimer = 20; // max frames for bounce
   }
 }

@@ -100,6 +100,15 @@ export class Renderer {
       case "dash":
         bodyOffsetX = f * 3;
         break;
+      case "throw":
+        // Lean forward during throw
+        bodyOffsetX = f * 6;
+        break;
+      case "thrown":
+        // Being thrown: lifted up slightly
+        bodyOffsetY = -12;
+        bodyOffsetX = -f * 4;
+        break;
       case "attack":
         // Heavy attack windup: lean back
         if (fighter.attackData && fighter.attackData.type === "heavy" && fighter.attackFrame < fighter.attackData.startup) {
@@ -162,8 +171,34 @@ export class Renderer {
     const eyeX = bx + f * 3;
     ctx.fillRect(eyeX - 1, by - bodyH - headSize + 10, 3, 3);
 
-    // --- Draw arms / attack ---
-    if (fighter.state === "attack" && fighter.attackData) {
+    // --- Draw arms / attack / throw ---
+    if (fighter.state === "throw") {
+      // Throw animation: both arms reaching forward to grab
+      const armY = by - bodyH * 0.65;
+      const grabExtend = fighter.throwHitConfirmed ? 20 : 14;
+      const armColor = fighter.throwHitConfirmed ? "#ffcc44" : "#ffffff";
+      ctx.fillStyle = armColor;
+      // Both arms reaching forward
+      const armStartX = bx + f * (bodyW / 2 - 4);
+      const armEndX = armStartX + f * grabExtend;
+      const ax = Math.min(armStartX, armEndX);
+      const aw = Math.abs(armEndX - armStartX);
+      ctx.fillRect(ax, armY - 6, aw || 4, 8);
+      ctx.fillRect(ax, armY + 2, aw || 4, 8);
+      // Grab effect circle
+      if (fighter.throwHitConfirmed) {
+        ctx.fillStyle = "#ffcc4466";
+        ctx.beginPath();
+        ctx.arc(armEndX, armY, 12, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (fighter.state === "thrown") {
+      // Being thrown: arms flailing
+      const armY = by - bodyH * 0.5;
+      ctx.fillStyle = "#cc6666";
+      ctx.fillRect(bx - 8, armY - 10, 6, 14);
+      ctx.fillRect(bx + 2, armY - 6, 6, 10);
+    } else if (fighter.state === "attack" && fighter.attackData) {
       const ad = fighter.attackData;
       const total = ad.startup + ad.active + ad.recovery;
       const frame = fighter.attackFrame;

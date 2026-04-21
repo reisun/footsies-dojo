@@ -1,5 +1,5 @@
 import { InputState, Difficulty } from "./types";
-import { Fighter } from "./fighter";
+import { Fighter, THROW_RANGE } from "./fighter";
 
 interface CpuParams {
   reactionFrames: number; // lower = faster reaction
@@ -177,6 +177,60 @@ export class CpuAI {
       }
     } else {
       // Close range
+
+      // --- Okizeme (wake-up pressure): opponent is knockdown or getup ---
+      if (opponent.state === "knockdown" || opponent.state === "getup") {
+        if (optimal) {
+          // Choose between throw attempt (walk forward) and meaty heavy attack
+          const okiRoll = Math.random();
+          if (okiRoll < 0.45) {
+            // Walk forward to attempt throw on wake-up
+            this.setForward(self, input);
+            this.holdFrames = 8 + Math.floor(Math.random() * 10);
+          } else if (okiRoll < 0.80) {
+            // Time a heavy attack to land on wake-up
+            if (opponent.state === "getup" && opponent.stateTimer <= 10) {
+              input.heavy = true;
+            } else {
+              // Walk forward to position, then will attack next decision
+              this.setForward(self, input);
+              this.holdFrames = 5;
+            }
+          } else {
+            // Safe: medium attack
+            if (opponent.state === "getup" && opponent.stateTimer <= 6) {
+              input.medium = true;
+            } else {
+              this.setForward(self, input);
+              this.holdFrames = 4;
+            }
+          }
+        } else {
+          // Suboptimal: just walk forward or do a random attack
+          if (Math.random() < 0.5) {
+            this.setForward(self, input);
+            this.holdFrames = 10;
+          } else {
+            input.medium = true;
+          }
+        }
+        this.currentAction = input;
+        this.actionCooldown = 4 + Math.floor(Math.random() * 4);
+        return input;
+      }
+
+      // --- Throw attempt: walk forward into guarding opponent ---
+      // Auto-throw triggers when walking forward within throw range,
+      // so CPU just needs to walk forward when close to a guarding opponent
+      const opponentGuarding = opponent.state === "walkBack" || opponent.state === "crouchGuard" || opponent.state === "blockstun";
+      if (opponentGuarding && dist < THROW_RANGE + 20 && optimal && Math.random() < 0.5) {
+        this.setForward(self, input);
+        this.holdFrames = 6;
+        this.currentAction = input;
+        this.actionCooldown = 4;
+        return input;
+      }
+
       if (optimal) {
         if (opponent.isAttacking) {
           // Block: prefer crouch guard at close range

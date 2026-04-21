@@ -14,7 +14,7 @@ import {
 } from "./types";
 import { Fighter } from "./fighter";
 import { CpuAI } from "./cpu";
-import { resolveAttacks, resolvePush } from "./collision";
+import { resolveAttacks, resolvePush, checkAutoThrow, resolveThrow, checkDashBounce } from "./collision";
 
 const P1_START_X = CANVAS_W * 0.35;
 const P2_START_X = CANVAS_W * 0.65;
@@ -137,10 +137,26 @@ export class Game {
     // Push resolution (prevent overlapping)
     resolvePush(this.player, this.cpu);
 
+    // Dash bounce check (before throw check — dash should bounce away, not throw)
+    checkDashBounce(this.player, this.cpu);
+    checkDashBounce(this.cpu, this.player);
+
+    // Auto-throw check: walking forward into guarding opponent at close range
+    if (checkAutoThrow(this.player, this.cpu)) {
+      this.player.startThrow();
+    }
+    if (checkAutoThrow(this.cpu, this.player)) {
+      this.cpu.startThrow();
+    }
+
+    // Resolve active throws
+    const throwA = resolveThrow(this.player, this.cpu);
+    const throwB = resolveThrow(this.cpu, this.player);
+
     // Attack collision
     const { hitA, hitB } = resolveAttacks(this.player, this.cpu);
 
-    if (hitA || hitB) {
+    if (hitA || hitB || throwA || throwB) {
       this.hitStop = hitA && hitB ? 8 : 6;
     }
 

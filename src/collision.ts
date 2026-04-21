@@ -1,5 +1,5 @@
 import { Hitbox, CHAR_W } from "./types";
-import { Fighter } from "./fighter";
+import { Fighter, THROW_RANGE, THROW_DAMAGE, THROW_STARTUP } from "./fighter";
 
 export function boxOverlap(a: Hitbox, b: Hitbox): boolean {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -99,4 +99,62 @@ export function resolvePush(a: Fighter, b: Fighter): void {
     a.x += (sign * overlap) / 2;
     b.x -= (sign * overlap) / 2;
   }
+}
+
+/**
+ * Check if a fighter walking forward should auto-throw an opponent.
+ * Conditions: attacker is walkForward, opponent is guarding, distance < THROW_RANGE
+ */
+export function checkAutoThrow(a: Fighter, b: Fighter): boolean {
+  if (a.state !== "walkForward") return false;
+  // Opponent must be in a guarding state
+  const bGuarding = b.state === "walkBack" || b.state === "crouchGuard" || b.state === "blockstun";
+  if (!bGuarding) return false;
+
+  const dist = Math.abs(a.x - b.x);
+  if (dist > THROW_RANGE) return false;
+
+  return true;
+}
+
+/**
+ * Resolve throw grab during startup frames.
+ * Called each frame when a fighter is in "throw" state.
+ * Returns true if throw connected this frame.
+ */
+export function resolveThrow(thrower: Fighter, victim: Fighter): boolean {
+  if (thrower.state !== "throw") return false;
+  if (thrower.throwHitConfirmed) return false; // already connected
+  if (thrower.throwFrame >= THROW_STARTUP) return false; // past startup
+
+  const dist = Math.abs(thrower.x - victim.x);
+  // Check if still in range and victim is still grabbable
+  const victimGrabbable =
+    victim.state === "walkBack" ||
+    victim.state === "crouchGuard" ||
+    victim.state === "blockstun" ||
+    victim.state === "idle";
+
+  if (dist <= THROW_RANGE + 10 && victimGrabbable) {
+    // Throw connects!
+    thrower.throwHitConfirmed = true;
+    victim.takeThrown(THROW_DAMAGE);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Check if a dashing fighter should bounce back when entering throw range.
+ */
+export function checkDashBounce(dasher: Fighter, opponent: Fighter): boolean {
+  if (dasher.state !== "dash") return false;
+  if (dasher.dashBouncing) return false; // already bouncing
+
+  const dist = Math.abs(dasher.x - opponent.x);
+  if (dist <= THROW_RANGE) {
+    dasher.startDashBounce(opponent.x);
+    return true;
+  }
+  return false;
 }
