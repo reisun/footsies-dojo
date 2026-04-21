@@ -1,0 +1,26 @@
+{
+  "name": "footsies-dojo",
+  "version": "1.0.0",
+  "description": "差し合い（footsies）特化の2D格闘ゲームを新規作成する。",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reisun/footsies-dojo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reisun/footsies-dojo/issues"
+  },
+  "homepage": "https://github.com/reisun/footsies-dojo#readme",
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.9"
+  }
+}

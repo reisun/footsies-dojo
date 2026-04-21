@@ -1,4 +1,25 @@
-__pycache__/
-*.py[cod]
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment
 .env
-.venv/
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

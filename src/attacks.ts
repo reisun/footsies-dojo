@@ -1,0 +1,43 @@
+import { AttackData } from "./types";
+
+export const ATTACKS: Record<string, AttackData> = {
+  light: {
+    type: "light",
+    startup: 4,
+    active: 3,
+    recovery: 8,
+    damage: 60,
+    chipDamage: 5,
+    hitstun: 12,
+    blockstun: 8,
+    range: 55,
+    pushback: 30,
+    guardPushback: 20,
+  },
+  medium: {
+    type: "medium",
+    startup: 8,
+    active: 4,
+    recovery: 14,
+    damage: 100,
+    chipDamage: 10,
+    hitstun: 18,
+    blockstun: 12,
+    range: 80,
+    pushback: 40,
+    guardPushback: 30,
+  },
+  heavy: {
+    type: "heavy",
+    startup: 14,
+    active: 5,
+    recovery: 22,
+    damage: 160,
+    chipDamage: 15,
+    hitstun: 24,
+    blockstun: 16,
+    range: 110,
+    pushback: 60,
+    guardPushback: 45,
+  },
+};
