@@ -85,11 +85,8 @@ export class CpuAI {
         this.actionCooldown = 2; // Quick reaction for punish
         return input;
       } else {
-        // Keep crouch guarding while waiting
+        // Keep crouch guarding continuously while waiting (no flickering)
         this.setCrouchGuard(self, input);
-        this.currentAction = input;
-        this.holdFrames = 5;
-        this.actionCooldown = 5;
         return input;
       }
     }
@@ -113,7 +110,7 @@ export class CpuAI {
         // Occasionally crouch guard while waiting at range
         if (Math.random() < 0.4) {
           this.setCrouchGuard(self, input);
-          this.holdFrames = 10 + Math.floor(Math.random() * 15);
+          this.holdFrames = 25 + Math.floor(Math.random() * 20);
         } else if (Math.random() < 0.3) {
           this.setBack(self, input);
           this.holdFrames = 5 + Math.floor(Math.random() * 8);
