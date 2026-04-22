@@ -1,6 +1,6 @@
 {
   "name": "footsies-dojo",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "差し合い（footsies）特化の2D格闘ゲームを新規作成する。",
   "type": "module",
   "scripts": {
