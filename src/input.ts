@@ -109,10 +109,30 @@ export class InputHandler {
     };
   }
 
+  private debugTimer = 0;
+
   private pollGamepad(): void {
     this.gpKeys.clear();
     const gp = navigator.getGamepads()[0];
     if (!gp) return;
+
+    // Temporary debug: log pressed buttons and non-zero axes every 60 frames
+    this.debugTimer++;
+    if (this.debugTimer % 60 === 0) {
+      const pressed = gp.buttons
+        .map((b, i) => (b.pressed ? i : -1))
+        .filter((i) => i >= 0);
+      const axes = gp.axes
+        .map((v, i) => (Math.abs(v) > 0.1 ? `${i}:${v.toFixed(2)}` : ""))
+        .filter(Boolean);
+      if (pressed.length || axes.length) {
+        console.log(
+          `[Gamepad] mapping="${gp.mapping}" buttons=${gp.buttons.length}`,
+          `pressed=[${pressed}]`,
+          `axes=[${axes}]`
+        );
+      }
+    }
 
     const isStandard = gp.mapping === "standard";
     const buttonMap = isStandard ? STANDARD_BUTTON_MAP : RAW_BUTTON_MAP;
