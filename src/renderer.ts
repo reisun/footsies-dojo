@@ -401,16 +401,6 @@ export class Renderer {
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     }
 
-    // Version display
-    ctx.fillStyle = "#666666";
-    ctx.font = "10px monospace";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "bottom";
-    ctx.fillText(
-      `v${__APP_VERSION__} (${__COMMIT_HASH__})`,
-      CANVAS_W - 6,
-      CANVAS_H - 4,
-    );
   }
 
   drawRoundMessage(msg: string): void {
@@ -490,6 +480,17 @@ export class Renderer {
     ctx.fillText("W/S or UP/DOWN to select   ENTER or J to start", CANVAS_W / 2, 440);
     ctx.fillText("A/D = Move   W = Dash   S = Crouch   S+A/D(back) = Guard   J/K/L = Attacks", CANVAS_W / 2, 465);
     ctx.fillText("H = Toggle Hitboxes", CANVAS_W / 2, 490);
+
+    // Version display
+    ctx.fillStyle = "#555555";
+    ctx.font = "10px monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(
+      `v${__APP_VERSION__} (${__COMMIT_HASH__})`,
+      CANVAS_W - 6,
+      CANVAS_H - 4,
+    );
   }
 
   drawResultScreen(playerWon: boolean): void {
