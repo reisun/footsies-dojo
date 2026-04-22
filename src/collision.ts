@@ -106,7 +106,8 @@ export function resolvePush(a: Fighter, b: Fighter): void {
  * Conditions: attacker is walkForward, opponent is guarding, distance < THROW_RANGE
  */
 export function checkAutoThrow(a: Fighter, b: Fighter): boolean {
-  if (a.state !== "walkForward") return false;
+  // Walk forward or dash into guarding opponent → auto throw
+  if (a.state !== "walkForward" && a.state !== "dash") return false;
   // Opponent must be in a guarding state
   const bGuarding = b.state === "walkBack" || b.state === "crouchGuard" || b.state === "blockstun";
   if (!bGuarding) return false;
@@ -139,21 +140,6 @@ export function resolveThrow(thrower: Fighter, victim: Fighter): boolean {
     // Throw connects!
     thrower.throwHitConfirmed = true;
     victim.takeThrown(THROW_DAMAGE);
-    return true;
-  }
-  return false;
-}
-
-/**
- * Check if a dashing fighter should bounce back when entering throw range.
- */
-export function checkDashBounce(dasher: Fighter, opponent: Fighter): boolean {
-  if (dasher.state !== "dash") return false;
-  if (dasher.dashBouncing) return false; // already bouncing
-
-  const dist = Math.abs(dasher.x - opponent.x);
-  if (dist <= THROW_RANGE) {
-    dasher.startDashBounce(opponent.x);
     return true;
   }
   return false;

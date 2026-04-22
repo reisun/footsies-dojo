@@ -29,10 +29,6 @@ export const THROW_ACTIVE = 10; // frames of throw animation after connecting
 export const THROW_RECOVERY = 12; // frames after throw animation
 const THROW_PUSHBACK = 18;
 
-// Dash bounce constants
-const DASH_BOUNCE_TARGET_DIST = 80; // bounce back to medium attack range
-const DASH_BOUNCE_SPEED = 6;
-
 export class Fighter {
   x: number;
   hp = MAX_HP;
@@ -49,9 +45,6 @@ export class Fighter {
   // Throw state
   throwFrame = 0;
   throwHitConfirmed = false; // true once throw grab connects
-
-  // Dash bounce state
-  dashBouncing = false;
 
   roundsWon = 0;
 
@@ -75,7 +68,6 @@ export class Fighter {
     this.attackHitConfirmed = false;
     this.throwFrame = 0;
     this.throwHitConfirmed = false;
-    this.dashBouncing = false;
     this.comboCount = 0;
   }
 
@@ -271,15 +263,7 @@ export class Fighter {
 
       case "dash":
         this.stateTimer--;
-        // Dash bounce: if bouncing, decelerate and stop
-        if (this.dashBouncing) {
-          this.velocityX *= 0.85;
-          if (Math.abs(this.velocityX) < 0.5 || this.stateTimer <= 0) {
-            this.state = "idle";
-            this.velocityX = 0;
-            this.dashBouncing = false;
-          }
-        } else if (this.stateTimer <= 0) {
+        if (this.stateTimer <= 0) {
           this.state = "idle";
           this.velocityX = 0;
         }
@@ -394,11 +378,4 @@ export class Fighter {
     this.attackFrame = 0;
   }
 
-  /** Start dash bounce (reverse direction away from opponent) */
-  startDashBounce(opponentX: number): void {
-    this.dashBouncing = true;
-    const awayDir = this.x < opponentX ? -1 : 1;
-    this.velocityX = DASH_BOUNCE_SPEED * awayDir;
-    this.stateTimer = 20; // max frames for bounce
-  }
 }

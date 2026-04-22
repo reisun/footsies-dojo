@@ -15,7 +15,7 @@ import {
 } from "./types";
 import { Fighter } from "./fighter";
 import { CpuAI } from "./cpu";
-import { resolveAttacks, resolvePush, checkAutoThrow, resolveThrow, checkDashBounce } from "./collision";
+import { resolveAttacks, resolvePush, checkAutoThrow, resolveThrow } from "./collision";
 
 const P1_START_X = CANVAS_W * 0.35;
 const P2_START_X = CANVAS_W * 0.65;
@@ -208,11 +208,7 @@ export class Game {
     // Push resolution (prevent overlapping)
     resolvePush(this.player, this.cpu);
 
-    // Dash bounce check (before throw check — dash should bounce away, not throw)
-    checkDashBounce(this.player, this.cpu);
-    checkDashBounce(this.cpu, this.player);
-
-    // Auto-throw check: walking forward into guarding opponent at close range
+    // Auto-throw check: walking forward or dashing into guarding opponent at close range
     if (checkAutoThrow(this.player, this.cpu)) {
       this.player.startThrow();
     }
@@ -261,10 +257,6 @@ export class Game {
 
     // Push resolution
     resolvePush(this.player, this.cpu);
-
-    // Dash bounce check
-    checkDashBounce(this.player, this.cpu);
-    checkDashBounce(this.cpu, this.player);
 
     // Auto-throw check
     if (checkAutoThrow(this.player, this.cpu)) {
