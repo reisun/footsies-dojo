@@ -3,18 +3,28 @@ import { InputState } from "./types";
 const DOUBLE_TAP_WINDOW = 12; // frames within which second tap must occur
 const STICK_THRESHOLD = 0.5;
 
-// Standard Gamepad API button → virtual key(s)
-// PS: □=2 ✕=0 ◯=1 △=3  Xbox: X=2 A=0 B=1 Y=3
-const GAMEPAD_BUTTON_MAP: [number, string[]][] = [
-  [0, ["k", "enter"]],  // Cross/A → medium + confirm
-  [1, ["l", "escape"]],  // Circle/B → heavy + back
-  [2, ["j"]],            // Square/X → light
-  [8, ["escape"]],       // Select/Back
-  [9, ["enter"]],        // Start
+// W3C "standard" mapping (browser remaps to this layout)
+// Button indices: 0=✕/A  1=◯/B  2=□/X  3=△/Y  D-pad=12-15
+const STANDARD_BUTTON_MAP: [number, string[]][] = [
+  [0, ["k", "enter"]],   // ✕/A → medium + confirm
+  [1, ["l", "escape"]],  // ◯/B → heavy + back
+  [2, ["j"]],            // □/X → light
+  [8, ["escape"]],       // Select/Share
+  [9, ["enter"]],        // Start/Options
   [12, ["w"]],           // D-pad Up
   [13, ["s"]],           // D-pad Down
   [14, ["a"]],           // D-pad Left
   [15, ["d"]],           // D-pad Right
+];
+
+// Non-standard (raw) mapping — PS native button order
+// Button indices: 0=□  1=✕  2=◯  3=△  D-pad position varies
+const RAW_BUTTON_MAP: [number, string[]][] = [
+  [0, ["j"]],            // □ → light
+  [1, ["k", "enter"]],   // ✕ → medium + confirm
+  [2, ["l", "escape"]],  // ◯ → heavy + back
+  [8, ["escape"]],       // Share/Create
+  [9, ["enter"]],        // Options
 ];
 
 export class InputHandler {
@@ -22,7 +32,6 @@ export class InputHandler {
   private justPressed = new Set<string>();
   private prevKeys = new Set<string>();
 
-  // Gamepad virtual keys (tracked separately for clean press detection)
   private gpKeys = new Set<string>();
   private prevGpKeys = new Set<string>();
 
@@ -105,9 +114,24 @@ export class InputHandler {
     const gp = navigator.getGamepads()[0];
     if (!gp) return;
 
-    for (const [idx, keys] of GAMEPAD_BUTTON_MAP) {
-      if (gp.buttons[idx]?.pressed) {
+    const isStandard = gp.mapping === "standard";
+    const buttonMap = isStandard ? STANDARD_BUTTON_MAP : RAW_BUTTON_MAP;
+
+    for (const [idx, keys] of buttonMap) {
+      if (idx < gp.buttons.length && gp.buttons[idx]?.pressed) {
         for (const k of keys) this.gpKeys.add(k);
+      }
+    }
+
+    // D-pad: standard layout uses fixed 12-15,
+    // non-standard controllers put D-pad as the last 4 buttons
+    if (!isStandard) {
+      const n = gp.buttons.length;
+      if (n >= 4) {
+        if (gp.buttons[n - 4]?.pressed) this.gpKeys.add("w");
+        if (gp.buttons[n - 3]?.pressed) this.gpKeys.add("s");
+        if (gp.buttons[n - 2]?.pressed) this.gpKeys.add("a");
+        if (gp.buttons[n - 1]?.pressed) this.gpKeys.add("d");
       }
     }
 
