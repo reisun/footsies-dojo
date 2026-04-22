@@ -21,6 +21,11 @@ export class CpuAI {
   /** "wait and punish" mode: crouch-guard and watch for heavy, then counter */
   private waitForHeavyMode = false;
   private waitModeFrames = 0;
+  /** Track opponent guard frequency to detect passive play */
+  private opponentGuardFrames = 0;
+  private trackingFrames = 0;
+  private static readonly GUARD_TRACK_WINDOW = 180; // 3 seconds at 60fps
+  private static readonly GUARD_THRESHOLD = 0.45; // 45%+ guarding = passive
 
   constructor(difficulty: Difficulty) {
     this.params = DIFFICULTY_PARAMS[difficulty];
@@ -67,6 +72,18 @@ export class CpuAI {
     const dist = Math.abs(self.x - opponent.x);
     const input = emptyInput();
 
+    // --- Track opponent guard frequency ---
+    const oppGuarding = opponent.state === "walkBack" || opponent.state === "crouchGuard" || opponent.state === "blockstun";
+    this.trackingFrames++;
+    if (oppGuarding) this.opponentGuardFrames++;
+    // Rolling window reset
+    if (this.trackingFrames >= CpuAI.GUARD_TRACK_WINDOW) {
+      this.opponentGuardFrames = Math.floor(this.opponentGuardFrames / 2);
+      this.trackingFrames = Math.floor(this.trackingFrames / 2);
+    }
+    const guardRate = this.trackingFrames > 30 ? this.opponentGuardFrames / this.trackingFrames : 0;
+    const opponentPassive = guardRate >= CpuAI.GUARD_THRESHOLD;
+
     // --- "Wait for heavy" mode: crouch guard and watch for opponent heavy ---
     if (this.waitForHeavyMode) {
       this.waitModeFrames--;
@@ -97,6 +114,15 @@ export class CpuAI {
 
     if (dist > 200) {
       // Far range: approach more aggressively
+
+      // Dash throw challenge: if opponent is passive and guarding, dash in to throw
+      if (opponentPassive && oppGuarding && optimal && Math.random() < 0.25) {
+        input.dash = true;
+        this.currentAction = input;
+        this.actionCooldown = 3;
+        return input;
+      }
+
       const approachChance = this.params.aggressiveness + 0.25; // Bias toward walking in
       if (roll < approachChance) {
         if (optimal && roll < 0.12) {
@@ -118,6 +144,14 @@ export class CpuAI {
       }
     } else if (dist > 120) {
       // Medium range: poke zone — key distance for footsies
+
+      // Dash throw challenge: opponent guarding passively → dash in to grab
+      if (opponentPassive && oppGuarding && optimal && Math.random() < 0.35) {
+        input.dash = true;
+        this.currentAction = input;
+        this.actionCooldown = 3;
+        return input;
+      }
 
       // Check for whiff punish opportunity first (always try if possible)
       if (
@@ -252,6 +286,14 @@ export class CpuAI {
           this.actionCooldown = 3;
           return input;
         }
+      }
+
+      // --- Dash throw from slightly outside throw range when opponent is passive ---
+      if (opponentPassive && opponentGuarding && dist >= THROW_RANGE + 10 && optimal && Math.random() < 0.40) {
+        input.dash = true;
+        this.currentAction = input;
+        this.actionCooldown = 3;
+        return input;
       }
 
       // --- Walk-in throw from slightly outside throw range ---
