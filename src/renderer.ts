@@ -400,6 +400,17 @@ export class Renderer {
       ctx.fillStyle = `rgba(255,255,255,${game.hitStop * 0.04})`;
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     }
+
+    // Version display
+    ctx.fillStyle = "#666666";
+    ctx.font = "10px monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(
+      `v${__APP_VERSION__} (${__COMMIT_HASH__})`,
+      CANVAS_W - 6,
+      CANVAS_H - 4,
+    );
   }
 
   drawRoundMessage(msg: string): void {
