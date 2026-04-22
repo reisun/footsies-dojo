@@ -18,7 +18,7 @@ const STANDARD_BUTTON_MAP: [number, string[]][] = [
 ];
 
 // Non-standard (raw) mapping — PS native button order
-// Button indices: 0=□  1=✕  2=◯  3=△  D-pad position varies
+// Button indices: 0=□  1=✕  2=◯  3=△  D-pad via hat switch axis
 const RAW_BUTTON_MAP: [number, string[]][] = [
   [0, ["j"]],            // □ → light
   [1, ["k", "enter"]],   // ✕ → medium + confirm
@@ -109,30 +109,10 @@ export class InputHandler {
     };
   }
 
-  private debugTimer = 0;
-
   private pollGamepad(): void {
     this.gpKeys.clear();
     const gp = navigator.getGamepads()[0];
     if (!gp) return;
-
-    // Temporary debug: log pressed buttons and non-zero axes every 60 frames
-    this.debugTimer++;
-    if (this.debugTimer % 60 === 0) {
-      const pressed = gp.buttons
-        .map((b, i) => (b.pressed ? i : -1))
-        .filter((i) => i >= 0);
-      const axes = gp.axes
-        .map((v, i) => (Math.abs(v) > 0.1 ? `${i}:${v.toFixed(2)}` : ""))
-        .filter(Boolean);
-      if (pressed.length || axes.length) {
-        console.log(
-          `[Gamepad] mapping="${gp.mapping}" buttons=${gp.buttons.length}`,
-          `pressed=[${pressed}]`,
-          `axes=[${axes}]`
-        );
-      }
-    }
 
     const isStandard = gp.mapping === "standard";
     const buttonMap = isStandard ? STANDARD_BUTTON_MAP : RAW_BUTTON_MAP;
@@ -143,15 +123,17 @@ export class InputHandler {
       }
     }
 
-    // D-pad: standard layout uses fixed 12-15,
-    // non-standard controllers put D-pad as the last 4 buttons
-    if (!isStandard) {
-      const n = gp.buttons.length;
-      if (n >= 4) {
-        if (gp.buttons[n - 4]?.pressed) this.gpKeys.add("w");
-        if (gp.buttons[n - 3]?.pressed) this.gpKeys.add("s");
-        if (gp.buttons[n - 2]?.pressed) this.gpKeys.add("a");
-        if (gp.buttons[n - 1]?.pressed) this.gpKeys.add("d");
+    // D-pad: standard uses buttons 12-15, non-standard uses hat switch on axis 9
+    if (!isStandard && gp.axes.length > 9) {
+      // Hat switch encodes 8 directions on a single axis:
+      // -1=N  -0.71=NE  -0.43=E  -0.14=SE  0.14=S  0.43=SW  0.71=W  1.0=NW
+      const hat = gp.axes[9];
+      const dir = Math.round((hat + 1) * 3.5); // 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW
+      if (dir >= 0 && dir <= 7) {
+        if (dir === 0 || dir === 1 || dir === 7) this.gpKeys.add("w");  // up
+        if (dir === 1 || dir === 2 || dir === 3) this.gpKeys.add("d");  // right
+        if (dir === 3 || dir === 4 || dir === 5) this.gpKeys.add("s");  // down
+        if (dir === 5 || dir === 6 || dir === 7) this.gpKeys.add("a");  // left
       }
     }
 
