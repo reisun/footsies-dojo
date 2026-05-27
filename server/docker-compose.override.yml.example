@@ -1,0 +1,8 @@
+services:
+  footsies-server:
+    networks:
+      - footsies-dojo-net
+
+networks:
+  footsies-dojo-net:
+    external: true
