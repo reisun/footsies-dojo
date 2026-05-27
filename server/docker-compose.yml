@@ -4,9 +4,3 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
-    networks:
-      - footsies-dojo-net
-
-networks:
-  footsies-dojo-net:
-    name: footsies-dojo-net
