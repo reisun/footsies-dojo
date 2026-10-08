@@ -215,7 +215,17 @@ const httpServer = createServer((_req, res) => {
   res.end(JSON.stringify({ status: "ok", rooms: rooms.size }));
 });
 
-const wss = new WebSocketServer({ server: httpServer });
+const allowedOrigins = new Set([
+  "https://reisun.github.io",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  ...(process.env.WS_ALLOWED_ORIGINS ?? "").split(",").map((origin) => origin.trim()).filter(Boolean),
+]);
+
+const wss = new WebSocketServer({
+  server: httpServer,
+  verifyClient: ({ origin }: { origin: string }) => !origin || allowedOrigins.has(origin),
+});
 
 wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
   const addr = req.socket.remoteAddress ?? "unknown";

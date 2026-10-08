@@ -3,6 +3,7 @@ import { InputHandler } from "./input";
 import { Game } from "./game";
 import { Renderer } from "./renderer";
 import { NetworkClient } from "./network";
+import { loadConfig } from "./config";
 
 document.getElementById("how-to-play")?.addEventListener("click", (e) => {
   (e.target as HTMLElement).blur();
@@ -395,8 +396,15 @@ function render(): void {
   }
 }
 
-// Start
-requestAnimationFrame((ts) => {
-  lastTime = ts;
-  requestAnimationFrame(gameLoop);
+// Load the connection configuration before starting the game.
+void loadConfig().then(() => {
+  requestAnimationFrame((ts) => {
+    lastTime = ts;
+    requestAnimationFrame(gameLoop);
+  });
+}).catch((error: unknown) => {
+  const message = document.createElement("p");
+  message.setAttribute("role", "alert");
+  message.textContent = error instanceof Error ? error.message : "接続設定が不正です。";
+  canvas.replaceWith(message);
 });

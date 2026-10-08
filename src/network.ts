@@ -1,19 +1,6 @@
 import { InputState } from "./types";
 
-// Server URL: detect from current page or use env
-function getServerUrl(): string {
-  // In production (GitHub Pages), connect to the self-hosted relay server
-  const WS_HOST = (import.meta as any).env?.VITE_WS_HOST;
-  if (WS_HOST) {
-    return WS_HOST;
-  }
-  // Local dev: connect directly to server
-  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-    return `ws://${location.hostname}:3001`;
-  }
-  // Production: connect via reverse proxy
-  return `wss://reisun.asuscomm.com/footsies-dojo/`;
-}
+import { getServerUrl } from "./config";
 
 export type NetworkState =
   | "disconnected"
