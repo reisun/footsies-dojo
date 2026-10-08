@@ -1,5 +1,6 @@
 services:
   footsies-server:
+    container_name: footsies-dojo-websocket-relay-1
     build: .
     restart: unless-stopped
     ports:

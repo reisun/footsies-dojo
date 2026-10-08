@@ -11,3 +11,10 @@
 ## WebSocket
 
 トンネルの接続先は `footsies-server:3001`。HTTP `/` がヘルスチェック。画面は `apiBaseUrl` の `https:` を `wss:` に変換する。リレーは `https://reisun.github.io`、localhost/127.0.0.1 のポート 5173、追加の `WS_ALLOWED_ORIGINS` を許可する。Origin がない非ブラウザクライアントも利用可能。ホスト側ポートは 127.0.0.1 のみで公開する。
+
+## Dockerコンテナ名
+
+- `footsies-dojo-websocket-relay-1`: オンライン対戦のWebSocket中継サーバー（HTTP `/` はヘルスチェック）。
+- `footsies-dojo-quick-tunnel-1`: 中継サーバーを公開するcloudflared。
+
+両方ともcontainer_nameを指定し、Composeファイルの親ディレクトリ名に依存しない名前にする。Docker内の接続先service名は引き続き `footsies-server:3001`。
