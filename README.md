@@ -143,6 +143,6 @@ npm run build
 
 GitHub Pages の画面は起動前に `config.json` をキャッシュなしで取得します。GitHub リポジトリ変数 `QUICK_TUNNEL_URL` に Quick Tunnel の HTTPS URL を設定し、`.github/workflows/deploy.yml` を実行すると `public/config.json` に `{ "apiBaseUrl": "https://example-random.trycloudflare.com" }` が生成されます。画面は HTTPS を WSS に変換して WebSocket 接続します。設定が欠落・不正な場合はエラーを表示します。旧リバプロへのフォールバックはありません。
 
-中継サーバーは `server/docker-compose.yml` の `footsies-server:3001` で起動し、同じ Compose ネットワーク内の Quick Tunnel から直接接続します。共有リバプロ・共有ネットワークは不要です。起動・URL 取得・変数更新・Pages 再デプロイはワークスペースの `reverse-proxy/scripts/quick-tunnels.py` で行います。トンネル URL の `/` はヘルスチェックです。URL はトンネル再起動時に変わるため Pages 再デプロイが必要です。WebSocket は `https://reisun.github.io` とローカル開発オリジンを許可します。
+コンテナ名は中継サーバーが `footsies-dojo-websocket-relay-1`、トンネルが `footsies-dojo-quick-tunnel-1` です。中継サーバーは `server/docker-compose.yml` の `footsies-server:3001` で起動し、同じ Compose ネットワーク内の Quick Tunnel から直接接続します。共有リバプロ・共有ネットワークは不要です。起動・URL 取得・変数更新・Pages 再デプロイはワークスペースの `reverse-proxy/scripts/quick-tunnels.py` で行います。トンネル URL の `/` はヘルスチェックです。URL はトンネル再起動時に変わるため Pages 再デプロイが必要です。WebSocket は `https://reisun.github.io` とローカル開発オリジンを許可します。
 
 ローカル開発では従来どおり `ws://localhost:3001`（または `VITE_WS_HOST`）を使います。生成した `public/config.json` はコミットしません。
