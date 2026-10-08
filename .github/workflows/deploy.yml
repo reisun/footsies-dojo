@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: Quick Tunnel HTTPS base URL
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -29,6 +34,21 @@ jobs:
           cache: npm
 
       - run: npm ci
+      - name: Generate runtime connection config
+        env:
+          QUICK_TUNNEL_URL: ${{ inputs.api_base_url || vars.QUICK_TUNNEL_URL }}
+        run: |
+          node --input-type=module <<'JS'
+          import { mkdirSync, writeFileSync } from 'node:fs';
+          const value = process.env.QUICK_TUNNEL_URL;
+          const url = new URL(value);
+          if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
+            throw new Error('QUICK_TUNNEL_URL must be a valid HTTPS base URL');
+          }
+          mkdirSync('public', { recursive: true });
+          writeFileSync('public/config.json', JSON.stringify({ apiBaseUrl: url.href.replace(/\/$/, '') }) + '\n');
+          JS
+
       - run: npm run build
 
       - uses: actions/configure-pages@v5
